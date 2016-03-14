@@ -1,0 +1,3829 @@
+Patch created with './debian/update-sync-to-main ../trunk'
+------------------------------------------------------------
+revno: 282 [merge]
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Mon 2016-03-14 12:48:58 -0400
+message:
+  cloud-localds: support --vendor-data, network-config and 'tar' output
+  
+  This adds support for:
+   --vendor-data: To allow seeding vendor data.
+   --network-config: to allow writing network-config file for providing
+                     the cloud with networking information.
+   --disk-format:
+     tar:  write contents as a tarball rather than disk image
+     tar-seed-local: write same contents of 'tar', but with 
+                     var/lib/cloud/seed/nocloud prefix.
+     tar-seed-net:   write same contents of 'tar', but with 
+                     var/lib/cloud/seed/nocloud-net prefix.
+------------------------------------------------------------
+revno: 281
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Mon 2016-02-01 11:42:39 +0100
+message:
+  ubuntu-cloudimg-query: support arch input of 'powerpc' and 's390x'
+    
+  cloud images are now available for s390 and support powerpc there also.
+------------------------------------------------------------
+revno: 280
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2016-01-27 12:53:13 -0500
+message:
+  mount-image-callback: better waiting for devices
+  
+  on power8 systems we were failing to mount partitioned images.
+  The reason was mostly that we were looking for nbd0p1 too quickly.
+  The change here is to wait with 'sfdisk' to return success on the
+  nbd device.  That should then indicate it is ready to use.
+  
+  We use it to determine if 'auto' (no --partition flag) should
+  be 0 or 1.  We can then wait more intently for the block device
+  to appear as we know whether or not nbd0p1 *should* appear.
+------------------------------------------------------------
+revno: 279 [merge]
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Tue 2016-01-19 13:07:02 -0500
+message:
+  sync packaging with what is in xenial and split euca2ools pieces
+  
+  Syncing the packaging with Ubuntu will just make management easier.
+  Then, we split the cloud-publish-* packages to a cloud-utils-euca
+  package.  Because these were a part of cloud-image-utils, anything
+  that used that (such as for cloud-image-query) would end up pulling
+  in euca2ools.  The largest pain of that was in getting python2 into
+  ubuntu cloud images.
+------------------------------------------------------------
+revno: 278
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2015-11-04 15:48:16 -0500
+message:
+  mount-image-callback: use qemu-nbd --read-only for safer read only
+  
+  use qemu-nbd --read-only when using qemu and mounting read-only.
+  The value in this is that the block device appears read-only in this
+  way.
+------------------------------------------------------------
+revno: 277
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2015-11-04 15:32:59 -0500
+message:
+  mount-image-callback: add '--overlay' to use overlayfs mounts
+  
+  --overlay means you can easily leave changed files around.
+  
+   $ sudo rm -Rf mp; sudo mkdir mp;
+   $ sudo ./mount-image-callback d.img \
+      --overlay --mountpoint=mp --system-resolvconf \
+      chroot mp -- apt-get update -q 
+   $ find mp -type f
+   ...
+   mp/var/lib/apt/periodic/update-success-stamp
+   mp/var/lib/dpkg/lock
+  
+  also useful to perform operations on a read-only fileystem
+  or one that doesnt have enough space in it without resizing.
+------------------------------------------------------------
+revno: 276
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2015-11-04 14:28:19 -0500
+message:
+  mount-image-callback: add '--mountpoint' flag to mount to an existing dir
+  
+  instead of always getting a temporary directory, support the user
+  specifying the mountpoint.
+  
+  example:
+     mount-image-callback --mountpoint=mp -- tar -C mp -cf - .
+------------------------------------------------------------
+revno: 275
+fixes bug: http://bugs.debian.org/793919
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Fri 2015-10-09 15:28:42 -0400
+message:
+  spelling cleanups in man/growpart.1
+  
+  fixes debian bug 793919
+------------------------------------------------------------
+revno: 274
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Thu 2015-09-17 09:03:25 -0400
+message:
+  mount-image-callback: fix regression in attempt to give better error
+  
+  previous commit tried to give a better error message by ensuring
+  that the target image was a file, but did so before the 'img' variable
+  was set.
+  
+  Simple fix is to move the check till after the variable is set.
+------------------------------------------------------------
+revno: 273
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Fri 2015-09-04 12:47:06 -0400
+message:
+  mount-image-callback: pass --format when invoking qemu-nbd
+  
+  qemu-nbd now kind of needs the --format flag for sanity.
+  Additionally, in some cases (such as not specifying --format)
+  qemu-nbd would leave the device connected, but exit non-zero.
+------------------------------------------------------------
+revno: 272
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2015-07-15 11:16:39 -0400
+message:
+  remove trailing whitespace
+------------------------------------------------------------
+revno: 271
+fixes bug: https://launchpad.net/bugs/1474090
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2015-07-15 11:12:36 -0400
+message:
+  growpart: only use sfdisk for gpt resize if > 2.26.3
+------------------------------------------------------------
+revno: 270
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2015-07-15 10:50:20 -0400
+message:
+  growpart: silence error output of older growpart when determining type
+  
+  older growpart will write warnings like:
+     WARNING: GPT (GUID Partition Table) detected ...
+  
+  meaning if you ran current growpart with older sfdisk, you'd see confusing
+  output.
+------------------------------------------------------------
+revno: 269
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Fri 2015-05-15 12:34:10 -0400
+message:
+  growpart: when growing dont grow past the secondary gpt table
+  
+  this will allow disks in mbr format that are grown with growpart
+  to subsequently be converted to gpt.
+  
+  other things have to be done right in order for that to be
+  useful, but it wastes such a small amount, allow for it.
+------------------------------------------------------------
+revno: 268
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Mon 2015-05-11 16:31:18 -0400
+message:
+  growpart: use 0 as argument to trap rather than EXIT
+  
+  some shells (reportedly the shell in static busybox in debian)
+  do not like 'trap xx EXIT', but will take 'trap xx 0'.
+  
+  EXIT is posixly correct, but not worth the readability if it
+  causes problems.
+------------------------------------------------------------
+revno: 267 [merge]
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Mon 2015-05-11 16:22:17 -0400
+message:
+  growpart: support sfdisk >= 2.26
+  
+  sfdisk >= 2.26 is command line incompatible with older versions.
+  
+  This commit does:
+   * support newer sfdisk versions for dos formated partition tables
+   * support restoring on failure with newer sfdisk
+   * drop use of Cylinder/Head/Sector and '--show-pt-geometry'
+   * supports using sfdisk > 2.26 to resize gpt tables
+     Thus, this removes the need for sgdisk if we have sufficient sfdisk
+   * adds tools/make-short-partition
+     simple tool to just easily partition a device or file
+     to have a growpart'able partition table on it. useful for testing.
+   * adds test/test-growpart-fsimage
+     test to create an image file, partition it, growpart it
+   * test/test-growpart: minor improvements
+   * sfdisk path now uses sector size more intelligently
+   * GROWPART_FUDGE is now specified in bytes rather than sectors.
+------------------------------------------------------------
+revno: 266
+committer: Daniel Watkins <daniel.watkins@canonical.com>
+branch nick: trunk
+timestamp: Thu 2015-03-19 17:39:39 +0000
+message:
+  Fix SyntaxError.
+------------------------------------------------------------
+revno: 265 [merge]
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2015-03-18 19:29:29 -0400
+message:
+  more python3 changes
+------------------------------------------------------------
+revno: 264
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2015-03-11 14:12:55 -0400
+message:
+  add utopic and vivid to hard coded lists
+------------------------------------------------------------
+revno: 263 [merge]
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2015-03-11 14:09:27 -0400
+message:
+  ec2metadata, ubuntu-ec2-run, write-mime-multipart: move to python3
+  
+  support python3 and python2.
+------------------------------------------------------------
+revno: 262
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2014-09-24 13:21:19 -0400
+message:
+  mount-image-callback: support '--cd-mountpoint' flag
+------------------------------------------------------------
+revno: 261
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Thu 2014-08-21 01:32:14 -0400
+message:
+  mount-image-callback: support '--partition' flag
+------------------------------------------------------------
+revno: 260
+fixes bug: https://launchpad.net/bugs/1303786
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Mon 2014-04-07 08:43:08 -0400
+message:
+  ubuntu-ec2-run: fix regression in normal usage path
+------------------------------------------------------------
+revno: 259
+fixes bug: https://launchpad.net/bugs/1302052
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Thu 2014-04-03 12:20:23 -0400
+message:
+  mount-image-callback: fix '--proc', '--sys', and '--dev'
+  
+  These didn't work as expected due to bad shell syntax.
+------------------------------------------------------------
+revno: 258
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Thu 2014-03-13 10:46:55 -0400
+message:
+  ubuntu-ec2-run: know about more instance types
+------------------------------------------------------------
+revno: 257
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2014-02-26 11:02:41 -0500
+message:
+  growpart: better --dry-run output for gpt disks
+        
+  provide the sgdisk command line that would be used.
+------------------------------------------------------------
+revno: 256
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Thu 2014-02-06 15:31:58 +0200
+message:
+  update changelog
+------------------------------------------------------------
+revno: 255
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Thu 2014-02-06 15:19:49 +0200
+message:
+  ubuntu-cloudimg-query: allow 'arm64', add '--arch'
+------------------------------------------------------------
+revno: 254
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2014-01-29 13:03:59 -0500
+message:
+  ubuntu-cloudimg-query, ubuntu-ec2-run: know about trusty
+------------------------------------------------------------
+revno: 253
+fixes bug: https://launchpad.net/bugs/1273769
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Tue 2014-01-28 12:13:12 -0500
+message:
+  ubuntu-cloudimg-query: allow 'ppc64el' as input. (LP: #1273769)
+  
+  We have ppc64el images now.
+  Long term, this program needs to be replaced with some sstream based
+  query.
+------------------------------------------------------------
+revno: 252
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-12-11 14:57:19 -0500
+message:
+  growpart: run partx only on block devices (not files)
+------------------------------------------------------------
+revno: 251
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-12-11 14:56:55 -0500
+message:
+  debian/changelog: update for last commit
+------------------------------------------------------------
+revno: 250
+fixes bug: https://launchpad.net/bugs/1259703
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Tue 2013-12-10 16:38:03 -0500
+message:
+  fix growpart issue growing partitions on disks greater than 2TB.
+  
+  sfdisk seems to not realize that it cannot grow a MBR partition
+  greater than 2TB.  When it tries to do so it ends up doing
+  something else, which is not what you want.
+  
+  the fix here is just to catch the case where this occurs and
+  explicitly specify the end at 2TB.
+------------------------------------------------------------
+revno: 249
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-10-30 09:28:14 -0400
+message:
+  allow 'armhf' input to ubuntu-cloudimg-query
+------------------------------------------------------------
+revno: 248
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-10-30 08:54:03 -0400
+message:
+  ubuntu-cloudimg-query: do not fail on no ami id found if no ami id is
+  necessary for the output requested (ie, allow 'armhf' queries of url)
+------------------------------------------------------------
+revno: 247
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Mon 2013-10-28 14:59:29 -0400
+message:
+  cloud-localds: make quiet by default (increase verbosity with '-v')
+------------------------------------------------------------
+revno: 246
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Tue 2013-08-27 15:49:22 -0400
+message:
+  debian/rules: simplify
+------------------------------------------------------------
+revno: 245
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Tue 2013-08-27 15:45:58 -0400
+message:
+  debian/copyright: fix warnings
+------------------------------------------------------------
+revno: 244
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Tue 2013-08-27 15:37:56 -0400
+message:
+  mount-image-callback: add utility
+------------------------------------------------------------
+revno: 243
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Tue 2013-08-27 14:36:03 -0400
+message:
+  remove some obsolete things (cloud-run-instances, cloud-keyring)
+  
+  * cloud-run-instances: dropped (obsolete, not recommended)
+  * remove ubuntu-cloud-keyring (replaced in ubuntu by
+    ubuntu-cloudimage-keyring)
+------------------------------------------------------------
+revno: 242
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-08-21 13:35:05 -0400
+message:
+  update changelogs
+------------------------------------------------------------
+revno: 241
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-08-21 13:32:30 -0400
+message:
+  vcs-run: add examples in usage, fix repo 'lp:foo'
+  
+  lp:foo didn't have a '/' in it, so it would end up doing:
+   bzr branch lp:foo lp:foo
+------------------------------------------------------------
+revno: 240
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-08-21 10:13:02 -0400
+message:
+  cloud-publish-image: pass '--architecture' to register command
+  
+  revno 234 seems incorrect.  The flag added to 'ec2-register'
+  (or euca-register) was '--arch' but it should have been --architecture.
+  
+  I've verified
+    EC2PRE="xc2 " cloud-publish-image -vv i386 my.img smoser-us-east-1
+  and
+    EC2PRE="euca-" cloud-publish-image -vv i386 my.img smoser-us-east-1
+  
+  worked correctly.
+------------------------------------------------------------
+revno: 239
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-08-21 09:57:12 -0400
+message:
+  update debian/ChangeLog
+------------------------------------------------------------
+revno: 238
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Thu 2013-08-15 15:42:37 -0400
+message:
+  cloud-localds: add --hostname flag
+  
+  this allows specifying of '--hostname' to set the 'local-hostname'
+  key in the metadata.  Also:
+   - improves writing of json formated metadata
+   - removes 'errorp' and 'failp' (previously unused) methods
+------------------------------------------------------------
+revno: 237
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Thu 2013-08-15 14:43:28 -0400
+message:
+  only use 'qemu-img' if output is not 'raw' format.
+  
+  it should not be necessary to use qemu-img for raw output format.
+  as the truncated image should be raw already.  This means that
+  we don't need qemu-img by default.
+------------------------------------------------------------
+revno: 236 [merge]
+fixes bug: https://launchpad.net/bugs/1206038
+author: Thomas Bechtold <thomasbechtold@jpberlin.de>
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Mon 2013-07-29 09:46:50 -0400
+message:
+  cloud-localds: add man page
+------------------------------------------------------------
+revno: 235
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Fri 2013-06-21 10:30:05 -0400
+message:
+  cloud-publish-image: accept --root-device-name parameter
+  
+  accept --root-device-name and pass it through to ${EC2PRE}register
+------------------------------------------------------------
+revno: 234
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Fri 2013-06-21 10:12:06 -0400
+message:
+  cloud-publish-image: put --architecture=arch in ${EC2PRE}-register
+  
+  if you don't pass --architecture to euca-register, then it will
+  now register with 'i386' (the default) even if you bundled with --arch.
+  
+  ec2-bundle-image still (1.6.6.0-0ubuntu1) needs '--arch' passed or
+  it will prompt the user, so we still pass it there.
+------------------------------------------------------------
+revno: 233
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Fri 2013-06-21 10:10:57 -0400
+message:
+  cloud-publish-image: show commands being run in debug output
+  
+  if user specifies '-vv', now they'll get commands that are being run.
+------------------------------------------------------------
+revno: 232
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Fri 2013-06-21 10:09:27 -0400
+message:
+  cloud-publish-image: fix 'debug' verbosity issue
+  
+  the lowest value passed to debug was 1, but that wouldn't do anything.
+  so, in order to see any debug output, the user would have to give '-vv'
+  
+  make '-v' give 'debug 1' output.
+------------------------------------------------------------
+revno: 231
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-06-19 14:59:25 -0400
+message:
+  vcs-run: --deps does not require an argument
+------------------------------------------------------------
+revno: 230
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-06-19 11:49:34 -0400
+message:
+  add debug statement
+------------------------------------------------------------
+revno: 229
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-06-19 11:47:19 -0400
+message:
+  vcs-run: handle error better
+------------------------------------------------------------
+revno: 228
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-06-19 11:45:56 -0400
+message:
+  use wget instead of curl
+------------------------------------------------------------
+revno: 227
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-06-19 11:40:59 -0400
+message:
+  update debian/changelog
+------------------------------------------------------------
+revno: 226
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-06-19 11:37:21 -0400
+message:
+  add 'vcs-run' command
+  
+  vcs-run is just a convenience command for downloading a version
+  control'd repository and executing a command in it.
+------------------------------------------------------------
+revno: 225
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-05-29 12:19:21 -0400
+message:
+  growpart: capture output of 'partx --help' to avoid stderr leakage
+  
+  partx --help on old versions of partx that do not support --help
+  would write to stderr something like:
+    | partx: unrecognized option '--help'
+    | unknown option
+  
+  This just captures that annoyance.
+------------------------------------------------------------
+revno: 224
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Wed 2013-05-22 10:13:19 -0400
+message:
+  fix some issues in reporting in the error path.
+  
+  A few changes here really just cleanups.
+   * If RESTORE_HUMAN isn't set, do not attempt to cat it on failure
+     of the restore function (this really should not happen).
+   * fix bug where RESTORE_HUMAN was not being set at all in gpt path.
+     And, we were not correctly catching failure of writing it.
+   * shorten race conditions when MBR_BACKUP and RESTORE_HUMAN were
+     set but not actually populated.
+------------------------------------------------------------
+revno: 223
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Thu 2013-03-28 08:42:13 -0400
+message:
+  ubuntu-cloudimg-query: change default release to 'precise'
+------------------------------------------------------------
+revno: 222
+committer: Scott Moser <smoser@ubuntu.com>
+branch nick: trunk
+timestamp: Thu 2013-03-28 08:41:12 -0400
+message:
+  open 0.28, improve build-deb
+------------------------------------------------------------
+Use --include-merged or -n0 to see merged revisions.
+=== modified file 'ChangeLog'
+--- old/ChangeLog	2013-03-27 13:10:52 +0000
++++ new/ChangeLog	2016-03-14 16:48:58 +0000
+@@ -1,3 +1,45 @@
++0.28
++ - ubuntu-cloudimg-query: change default release to 'precise'
++ - growpart: fix some issues in error path reporting
++ - growpart: capture output of 'partx --help' as older versions
++   do not support that flag, and send output to stderr.
++ - add 'vcs-run' utility for easily executing / bootstrapping
++   from a version control system (hg, git, bzr)
++ - cloud-localds: add man page [Thomas Bechtold]
++ - cloud-localds: only use qemu-img convert if output format is not 'raw'
++ - cloud-localds: add '--hostname' flag to specify local-hostname in
++   meta-data.
++ - cloud-publish-image: add '--architecture' when using 'register'
++ - cloud-publish-image: improvements to -v (debugging)
++ - cloud-publish-image: pass through --root-device-name
++ - cloud-run-instances: dropped (obsolete, not recommended)
++ - dropped installation of (obsolete) ubuntu cloud-image keyring.
++   See ubuntu package 'ubuntu-cloudimage-keyring'
++ - add mount-image-callback
++ - cloud-localds: make quiet by default (increase verbosity with '-v')
++ - ubuntu-cloudimg-query: do not fail on no ami id found if no ami id is
++   necessary for the output requested (ie, allow 'armhf' queries of url)
++ - growpart: fix bug when growing partitions on disks > 2TB. (LP: #1259703)
++ - growpart: run partx only on block devices (not files)
++ - ubuntu-cloudimg-query: allow 'ppc64el', 'arm64' as input. (LP: #1273769)
++ - ubuntu-cloudimg-query, ubuntu-ec2-run: know about trusty
++ - ubuntu-cloudimg-query: add '--arch' to specifically state the arch.
++ - growpart: better --dry-run output for gpt disks, providing sgdisk command
++   line that would be used.
++ - ubuntu-ec2-run: know about more instance types
++ - mount-image-callback: add '--partition' flag to mount other than first
++ - ec2metadata, ubuntu-ec2-run, write-mime-multipart: move to python3
++ - growpart: support sfdisk >= 2.26, and support gpt partitions with sfdisk
++ - mount-image-callback: pass --format when invoking qemu-nbd (LP: #1492386)
++ - mount-image-callback: add '--mountpoint' flag to mount to an existing dir
++ - mount-image-callback: add '--overlay' to use overlayfs mounts
++ - mount-image-callback: use qemu-nbd --read-only for safer read only
++ - mount-image-callback: improved waiting for devices. part=auto now default.
++ - ubuntu-cloudimg-query: support arch input of 'powerpc' and 's390x'
++ - cloud-localds: support writing vendor-data and network config
++ - cloud-localds: support --disk-format=tar, tar-seed-local and tar-seed-nonet
++   to more easily use when populating a fs rather than a external disk.
++
+ 0.27
+  - cloud-publish-image: add '--hook-img' flag to cloud-publish-image and
+    passthrough that flag from cloud-publish-ubuntu and cloud-publish-tarball.
+
+=== modified file 'Makefile'
+--- old/Makefile	2012-10-01 18:40:29 +0000
++++ new/Makefile	2013-08-27 18:36:03 +0000
+@@ -4,22 +4,17 @@
+ BINDIR = $(DESTDIR)/usr/bin
+ MANDIR = $(DESTDIR)/usr/share/man/man1
+ DOCDIR = $(DESTDIR)/usr/share/doc/$(NAME)
+-KEYDIR = $(DESTDIR)/usr/share/keyrings
+ 
+ binprogs := $(subst bin/,,$(wildcard bin/*))
+ manpages := $(subst man/,,$(wildcard man/*.1))
+ 
+-build: ubuntu-cloudimg-keyring.gpg
++build:
+ 	echo manpages=$(manpages)
+ 
+ install:
+-	mkdir -p "$(BINDIR)" "$(DOCDIR)" "$(MANDIR)" "$(KEYDIR)"
++	mkdir -p "$(BINDIR)" "$(DOCDIR)" "$(MANDIR)"
+ 	cd bin && install $(binprogs) "$(BINDIR)"
+ 	cd man && install $(manpages) "$(MANDIR)/" --mode=0644
+-	install -m 0644 ubuntu-cloudimg-keyring.gpg $(KEYDIR)
+-
+-ubuntu-cloudimg-keyring.gpg: ubuntu-cloudimg-keyring.gpg.b64
+-	grep -v "^#" "$<" | base64 --decode > "$@" || { rm "$@"; exit 1; }
+ 
+ clean:
+ 	:
+
+=== modified file 'bin/cloud-localds'
+--- old/bin/cloud-localds	2012-08-23 04:30:45 +0000
++++ new/bin/cloud-localds	2016-03-14 16:48:58 +0000
+@@ -4,11 +4,11 @@
+ TEMP_D=""
+ DEF_DISK_FORMAT="raw"
+ DEF_FILESYSTEM="iso9660"
++CR="
++"
+ 
+ error() { echo "$@" 1>&2; }
+-errorp() { printf "$@" 1>&2; }
+ fail() { [ $# -eq 0 ] || error "$@"; exit 1; }
+-failp() { [ $# -eq 0 ] || errorp "$@"; exit 1; }
+ 
+ Usage() {
+ 	cat <<EOF
+@@ -17,14 +17,23 @@
+    Create a disk for cloud-init to utilize nocloud
+ 
+    options:
+-     -h | --help            show usage
+-     -d | --disk-format D   disk format to output. default: raw
+-     -f | --filesystem  F   filesystem format (vfat or iso), default: iso9660
+-
+-     -i | --interfaces  F   write network interfaces file into metadata
+-     -m | --dsmode      M   add 'dsmode' ('local' or 'net') to the metadata
+-                            default in cloud-init is 'net', meaning network is
+-                            required.
++     -h | --help             show usage
++     -d | --disk-format D    disk format to output. default: raw
++                             can be anything supported by qemu-img or
++                             tar, tar-seed-local, tar-seed-net
++     -H | --hostname    H    set hostname in metadata to H
++     -f | --filesystem  F    filesystem format (vfat or iso), default: iso9660
++
++     -i | --interfaces  F    write network interfaces file into metadata
++     -N | --network-config F write network config file to local datasource
++     -m | --dsmode      M    add 'dsmode' ('local' or 'net') to the metadata
++                             default in cloud-init is 'net', meaning network is
++                             required.
++     -V | --vendor-data F    vendor-data file
++     -v | --verbose          increase verbosity
++
++   Note, --dsmode, --hostname, and --interfaces are incompatible
++   with metadata.
+ 
+    Example:
+     * cat my-user-data
+@@ -51,8 +60,9 @@
+ 	error "${@}"
+ }
+ 
+-short_opts="hi:d:f:m:o:v"
+-long_opts="disk-format:,dsmode:,filesystem:,help,interfaces:,output:,verbose"
++short_opts="hH:i:d:f:m:N:o:V:v"
++long_opts="disk-format:,dsmode:,filesystem:,help,hostname:,interfaces:,"
++long_opts="${long_opts}network-config:,output:,vendor-data:,verbose"
+ getopt_out=$(getopt --name "${0##*/}" \
+ 	--options "${short_opts}" --long "${long_opts}" -- "$@") &&
+ 	eval set -- "${getopt_out}" ||
+@@ -62,21 +72,27 @@
+ output=""
+ userdata=""
+ metadata=""
+-filesystem=$DEF_FILESYSTEM
++vendordata=""
++filesystem=""
+ diskformat=$DEF_DISK_FORMAT
+ interfaces=_unset
+ dsmode=""
++hostname=""
++ncname="network-config"
+ 
+ 
+ while [ $# -ne 0 ]; do
+ 	cur=${1}; next=${2};
+ 	case "$cur" in
+ 		-h|--help) Usage ; exit 0;;
+-		-v|--verbose) VERBOSITY=$((${VERBOSITY}+1));;
+ 		-d|--disk-format) diskformat=$next; shift;;
+ 		-f|--filesystem) filesystem=$next; shift;;
++		-H|--hostname) hostname=$next; shift;;
++		-i|--interfaces) interfaces=$next; shift;;
++		-N|--network-config) netcfg=$next; shift;;
+ 		-m|--dsmode) dsmode=$next; shift;;
+-		-i|--interfaces) interfaces=$next; shift;;
++		-v|--verbose) VERBOSITY=$((${VERBOSITY}+1));;
++		-V|--vendor-data) vendordata="$next";;
+ 		--) shift; break;;
+ 	esac
+ 	shift;
+@@ -91,10 +107,27 @@
+ userdata=$2
+ metadata=$3
+ 
+-[ -n "$metadata" -a "${interfaces}" != "_unset" ] &&
+-	fail "metadata and --interfaces are incompatible"
+-[ -n "$metadata" -a -n "$dsmode" ] &&
+-	fail "metadata and dsmode are incompatible"
++if [ -n "$metadata" ]; then
++	[ "$interfaces" = "_unset" -a -z "$dsmode" -a -z "$hostname" ] ||
++		fail "metadata is incompatible with:" \
++			"--interfaces, --hostname, --dsmode"
++fi
++
++case "$diskformat" in
++	tar|tar-seed-local|tar-seed-net)
++		if [ "${filesystem:-tar}" != "tar" ]; then
++			fail "diskformat=tar is incompatible with filesystem"
++		fi
++		filesystem="$diskformat"
++		;;
++	tar*)
++		fail "supported 'tar' formats are tar, tar-seed-local, tar-seed-net"
++esac
++
++if [ -z "$filesystem" ]; then
++	filesystem="$DEF_FILESYSTEM"
++fi
++
+ [ "$interfaces" = "_unset" -o -r "$interfaces" ] ||
+ 	fail "$interfaces: not a readable file"
+ 
+@@ -102,20 +135,43 @@
+ 	fail "failed to make tempdir"
+ trap cleanup EXIT
+ 
++files=( "${TEMP_D}/user-data" "${TEMP_D}/meta-data" )
+ if [ -n "$metadata" ]; then
+ 	cp "$metadata" "$TEMP_D/meta-data" || fail "$metadata: failed to copy"
+ else
++	instance_id="iid-local01"
+ 	iface_data=""
+-	dsmode_data=""
+ 	[ "$interfaces" != "_unset" ] &&
+-		iface_data=$(sed ':a;N;$!ba;s/\n/\\n/g' "$interfaces") &&
+-		iface_data="\"interfaces\": '$iface_data'"
+-	[ -n "$dsmode" ] && dsmode_data="\"dsmode\": \"$dsmode\""
++		iface_data=$(sed ':a;N;$!ba;s/\n/\\n/g' "$interfaces")
+ 
+ 	# write json formatted user-data (json is a subset of yaml)
+-	printf "{\n%s\n%s\n%s\n}" "\"instance-id\": \"iid-local01\"" \
+-		"${iface_data}" "${dsmode_data}" > "${TEMP_D}/meta-data"
+-fi
++	mdata=""
++	for kv in "instance-id:$instance_id" "local-hostname:$hostname" \
++		"interfaces:${iface_data}" "dsmode:$dsmode"; do
++		key=${kv%%:*}
++		val=${kv#*:}
++		[ -n "$val" ] || continue
++		mdata="${mdata:+${mdata},${CR}}\"$key\": \"$val\""
++	done
++	printf "{\n%s\n}\n" "$mdata" > "${TEMP_D}/meta-data"
++fi
++
++if [ -n "$netcfg" ]; then
++	cp "$netcfg" "${TEMP_D}/$ncname" ||
++		fail "failed to copy network config"
++	files[${#files[@]}]="$TEMP_D/$ncname"
++fi
++
++if [ -n "$vendordata" ]; then
++	cp "$vendordata" "${TEMP_D}/vendor-data" ||
++		fail "failed to copy vendor data"
++	files[${#files[@]}]="$TEMP_D/vendor-data"
++fi
++
++files_rel=( )
++for f in "${files[@]}"; do
++	files_rel[${#files_rel[@]}]="${f#${TEMP_D}/}"
++done
+ 
+ if [ "$userdata" = "-" ]; then
+ 	cat > "$TEMP_D/user-data" || fail "failed to read from stdin"
+@@ -124,30 +180,57 @@
+ fi
+ 
+ ## alternatively, create a vfat filesystem with same files
+-img="$TEMP_D/seed.img"
+-truncate --size 100K "$img" || fail "failed truncate image"
++img="$TEMP_D/seed-data"
++tar_opts=( --owner=root --group=root )
++
++case "$filesytem" in
++	iso9660|iso|vfat)
++		truncate --size 100K "$img" || fail "failed truncate image";;
++esac
+ 
+ case "$filesystem" in
++	tar)
++		tar "${tar_opts[@]}" -C "${TEMP_D}" -cf "$img" "${files_rel[@]}" ||
++			fail "failed to create tarball of ${files_rel[*]}"
++		;;
++	tar-seed-local|tar-seed-net)
++		if [ "$filesystem" = "tar-seed-local" ]; then
++			path="var/lib/cloud/seed/nocloud"
++		else
++			path="var/lib/cloud/seed/nocloud-net"
++		fi
++		mkdir -p "${TEMP_D}/${path}" ||
++			fail "failed making path for seed files"
++		mv "${files[@]}" "${TEMP_D}/$path" ||
++			fail "failed moving files"
++		tar "${tar_opts[@]}" -C "${TEMP_D}" -cf "$img" "${path}" ||
++			fail "failed to create tarball with $path"
++		;;
+ 	iso9660|iso)
+ 		genisoimage  -output "$img" -volid cidata \
+-			-joliet -rock "$TEMP_D/user-data" "$TEMP_D/meta-data" \
+-			> "$TEMP_D/err" 2>&1 ||
++			-joliet -rock "${files[@]}" > "$TEMP_D/err" 2>&1 ||
+ 			{ cat "$TEMP_D/err" 1>&2; fail "failed to genisoimage"; }
+ 		;;
+ 	vfat)
++		truncate --size 100K "$img" || fail "failed truncate image"
+ 		mkfs.vfat -n cidata "$img" || fail "failed mkfs.vfat"
+-		mcopy -oi "$img" "$TEMP_D/user-data" "$TEMP_D/meta-data" :: ||
++		mcopy -oi "$img" "${files[@]}" :: ||
+ 			fail "failed to copy user-data, meta-data to img"
+ 		;;
+ 	*) fail "unknown filesystem $filesystem";;
+ esac
+ 
+ [ "$output" = "-" ] && output="$TEMP_D/final"
+-qemu-img convert -f raw -O "$diskformat" "$img" "$output" ||
+-	fail "failed to convert to disk format $diskformat"
++if [ "${diskformat#tar}" != "$diskformat" -o "$diskformat" = "raw" ]; then
++	cp "$img" "$output" ||
++		fail "failed to copy image to $output"
++else
++	qemu-img convert -f raw -O "$diskformat" "$img" "$output" ||
++		fail "failed to convert to disk format $diskformat"
++fi
+ 
+ [ "$output" != "$TEMP_D/final" ] || { cat "$output" && output="-"; } ||
+ 	fail "failed to write to -"
+ 
+-error "wrote ${output} with filesystem=$filesystem and diskformat=$diskformat"
++debug 1 "wrote ${output} with filesystem=$filesystem and diskformat=$diskformat"
+ # vi: ts=4 noexpandtab
+
+=== modified file 'bin/cloud-publish-image'
+--- old/bin/cloud-publish-image	2012-12-03 15:11:53 +0000
++++ new/bin/cloud-publish-image	2015-07-15 15:16:39 +0000
+@@ -64,6 +64,7 @@
+                                 specify 'none' for no ramdisk
+       -R | --ramdisk-file f   : bundle, upload, use file 'f' as ramdisk
+       -B | --block-device-mapping m : specify block device mapping in bundle
++           --root-device-name r: pass '--root-device-name' in register
+ EOF
+ }
+ 
+@@ -79,7 +80,7 @@
+ debug() {
+ 	local level=${1}
+ 	shift;
+-	[ "${level}" -ge "${VERBOSITY}" ] && return
++	[ "${level}" -gt "${VERBOSITY}" ] && return
+ 	error "$(date):" "${@}"
+ }
+ run() {
+@@ -88,6 +89,8 @@
+ 	[ -e "${dir}/stamp.${pre}" ] &&
+ 		{ debug 1 "skipping ${pre}"; return 0; }
+ 	debug 1 "${msg}"
++	debug 2 "running:" "${@}"
++
+ 	echo "$@" > "${dir}/${pre}.cmd"
+ 	"$@" > "${dir}/${pre}.stdout" 2> "${dir}/${pre}.stderr" &&
+ 		: > "${dir}/stamp.${pre}" && return 0
+@@ -184,7 +187,7 @@
+ 	error "WARNING: '${0##*/}' is now to 'cloud${_n#uec}'. Please update your tools or docs"
+ 
+ short_opts="B:h:k:K:l:no:r:R:t:vw:"
+-long_opts="add-launch:,allow-existing,block-device-mapping:,dry-run,help,hook-img:,kernel:,kernel-file:,name:,output:,image-to-raw,ramdisk:,ramdisk-file:,rename:,save-downloaded,type:,verbose,working-dir:"
++long_opts="add-launch:,allow-existing,block-device-mapping:,dry-run,help,hook-img:,kernel:,kernel-file:,name:,output:,image-to-raw,ramdisk:,ramdisk-file:,rename:,root-device-name:,save-downloaded,type:,verbose,working-dir:"
+ getopt_out=$(getopt --name "${0##*/}" \
+ 	--options "${short_opts}" --long "${long_opts}" -- "$@") &&
+ 	eval set -- "${getopt_out}" ||
+@@ -210,6 +213,7 @@
+ image2raw=0
+ raw_image=""
+ hook_img=""
++rdname=""
+ 
+ while [ $# -ne 0 ]; do
+ 	cur=${1}; next=${2};
+@@ -241,8 +245,9 @@
+ 		-R|--ramdisk-file) ramdisk_file=${next}; shift;;
+ 		-n|--dry-run) dry_run=1;;
+ 		   --rename) rename=${next}; shift;;
++		   --root-device-name) rdname=${next}; shift;;
+ 		   --save-downloaded) save_dl=1;;
+-		-t|--type) 
++		-t|--type)
+ 			img_type=${next};
+ 			search_args "${img_type}" "${IMAGE_TYPES[@]}" ||
+ 				bad_Usage "image type (${next}) not in ${IMAGE_TYPES[*]}"
+@@ -358,7 +363,7 @@
+ 		debug 1 "${EC2PRE}register seems not to support --name, not passing"
+ 		name=""
+ 	fi
+-	
++
+ elif [ -z "${name}" -o "${name}" == "none" ]; then
+ 	# if user passed in '--name=""' or '--name=none", do not pass --name
+ 	name=""
+@@ -437,10 +442,10 @@
+ 		[ -n "${!env_name}" ] ||
+ 			fail "when using ec2- tools, you must set env: ${req}"
+ 	done
+-	ex_bundle_args=( --cert "${EC2_CERT}" 
+-	                 --privatekey "${EC2_PRIVATE_KEY}" 
++	ex_bundle_args=( --cert "${EC2_CERT}"
++	                 --privatekey "${EC2_PRIVATE_KEY}"
+ 	                 --user "${EC2_USER_ID}" )
+-	ex_upload_args=( --access-key "${EC2_ACCESS_KEY}" 
++	ex_upload_args=( --access-key "${EC2_ACCESS_KEY}"
+ 	                 --secret-key "${EC2_SECRET_KEY}" )
+ 
+ fi
+@@ -456,7 +461,7 @@
+ 	debug 1 "using existing ${img_id} for ${bucket}/${manifest}"
+ else
+ 	if [ $image2raw -eq 1 -a "$img_type" = "image" ]; then
+-		# this is really here because of LP: #836759 
++		# this is really here because of LP: #836759
+ 		# but could be useful elsewhere
+ 		qemu-img info "$image" > "${TMPD}/disk-info.out" ||
+ 			fail "failed to qemu-img info $image"
+@@ -503,6 +508,10 @@
+ 			fail "failed to upload bundle to ${bucket}/${manifest}"
+ 
+ 	junk="" img_id="";
++	ex_register_args[${#ex_register_args[@]}]="--architecture=$arch"
++	[ -n "$rdname" ] &&
++		ex_register_args[${#ex_register_args[@]}]="--root-device-name=$rdname"
++		
+ 	run "${wdir}" "register" "register ${bucket}/${manifest}" \
+ 		${EC2PRE}register ${name:+--name "${name}"} \
+ 			"${ex_register_args[@]}" "${bucket}/${manifest}" &&
+
+=== removed file 'bin/cloud-run-instances'
+--- old/bin/cloud-run-instances	2012-09-24 13:28:40 +0000
++++ new/bin/cloud-run-instances	1970-01-01 00:00:00 +0000
+@@ -1,715 +0,0 @@
+-#!/usr/bin/python
+-#
+-#    Copyright (C) 2010 Canonical Ltd.
+-#
+-#    Authors: Dustin Kirkland <kirkland@canonical.com>
+-#             Scott Moser <scott.moser@canonical.com>
+-#             Clint Byrum <clint.byrum@canonical.com>
+-#             Tom Ellis <tom.ellis@canonical.com>
+-#
+-#    This program is free software: you can redistribute it and/or modify
+-#    it under the terms of the GNU General Public License as published by
+-#    the Free Software Foundation, version 3 of the License.
+-#
+-#    This program is distributed in the hope that it will be useful,
+-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-#    GNU General Public License for more details.
+-#
+-#    You should have received a copy of the GNU General Public License
+-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-
+-
+-import os
+-import string
+-import sys
+-import signal
+-import re
+-import base64
+-from optparse import OptionParser
+-from socket import getaddrinfo
+-import time
+-import logging
+-from paramiko import SSHClient, AutoAddPolicy, AuthenticationException
+-import paramiko
+-from subprocess import Popen, PIPE
+-
+-finished = "FINISHED"
+-
+-CC_IMPORT_SSH = """#cloud-config
+-runcmd:
+- - [ sudo, -Hu, ubuntu, sh, '-c',
+-     "c=ssh-import-id; which $c >/dev/null || c=ssh-import-lp-id; $c $1",
+-     "--", "%s" ]
+-"""
+-
+-
+-class SafeConnectException(Exception):
+-    pass
+-
+-
+-class Instance(object):
+-    pass
+-
+-
+-class TemporaryMissingHostKeyPolicy(AutoAddPolicy):
+-    """ does not save to known_hosts, but does save the keys in an array """
+-    def __init__(self):
+-        self._keys = []
+-        AutoAddPolicy.__init__(self)
+-
+-    def missing_host_key(self, client, hostname, key):
+-        self._keys.append(key)
+-
+-    def getKeys(self):
+-        return self._keys
+-
+-
+-class PermanentMissingHostKeyPolicy(TemporaryMissingHostKeyPolicy):
+-    """ also has the behavor of the parent AutoAddPolicy """
+-    def missing_host_key(self, client, hostname, key):
+-#TemporaryMissingHostKeyPolicy.missing_host_key(self, client, hostname, key)
+-        self._keys.append(key)
+-        AutoAddPolicy.missing_host_key(self, client, hostname, key)
+-
+-
+-class ConsoleFingerprintScanner(object):
+-    def __init__(self, instance_id, hostname, provider, options, sleeptime=30):
+-        self.state = "working"
+-        self.instance_id = instance_id
+-        self.hostname = hostname
+-        self.provider = provider
+-        self.sleeptime = sleeptime
+-        self.fingerprint = None
+-        self.options = options
+-        self.logger = logging.getLogger('console-scanner(%s)' % instance_id)
+-
+-    def scan(self):
+-        self.logger.debug('scraping fingerprints for instance_id = %s',
+-            self.instance_id)
+-        try:
+-            while self.fingerprint is None:
+-                console_data = self.get_console_output()
+-                self.fingerprint = self.get_fingerprints_in_console_data(
+-                    console_data)
+-                if self.fingerprint is not None:
+-                    self.fingerprint = (int(self.fingerprint[0]),
+-                        self.fingerprint[1], self.fingerprint[3])
+-                else:
+-                    self.logger.debug('sleeping %d seconds',
+-                        self.options.sleep_time)
+-                    time.sleep(self.options.sleep_time)
+-        except None:
+-            pass
+-        return self.fingerprint
+-
+-    def get_console_output(self):
+-        cmd = '%s-get-console-output' % self.provider
+-        args = [cmd]
+-        args.append(self.instance_id)
+-
+-        self.logger.debug('running %s', args)
+-        rconsole = Popen(args, stdout=PIPE)
+-
+-        ret = []
+-        try:
+-            for line in rconsole.stdout:
+-                ret.append(line.strip())
+-        finally:
+-            cmdout = rconsole.wait()
+-
+-        if bool(cmdout):
+-            raise Exception('%s failed with return code = %d', cmd, cmdout)
+-
+-        return ret
+-
+-    def get_fingerprints_in_console_data(self, output):
+-        # return an empty list on "no keys found"
+-        # return a list of key fingerprint data on success
+-        #  where each key fingerprint data is an array like:
+-        #   (2048 c7:c8:1d:0f:d9:....0a:8a:fe localhost (RSA))
+-        begin_marker = "-----BEGIN SSH HOST KEY FINGERPRINTS----"
+-        end_marker = "----END SSH HOST KEY FINGERPRINTS-----"
+-        i = 0
+-        while i < len(output):
+-            if output[i].find(begin_marker) > -1:
+-                while i < len(output) and output[i].find(end_marker) == -1:
+-                    self.logger.debug(output[i].strip())
+-                    toks = output[i].split(" ")
+-                    self.logger.debug(toks)
+-                    if len(toks) == 5:
+-                        # rip off "ec2:"
+-                        toks = toks[1:]
+-                    if len(toks) == 4 and toks[3] == "(RSA)":
+-                        self.logger.debug('found %s on line %d', toks, i)
+-                        return((toks))
+-                    i = i + 1
+-                break
+-            i = i + 1
+-        self.logger.debug(
+-            'did not find any fingerprints in output! (lines=%d)', i)
+-        return None
+-
+-
+-class SshKeyScanner(object):
+-    def __init__(self, instance_id, hostname, options, sleeptime=30):
+-        self.state = "working"
+-        self.instance_id = instance_id
+-        self.hostname = hostname
+-        self.sleeptime = sleeptime
+-        self.fingerprint = None
+-        self.keys = None
+-        self.options = options
+-        self.port = 22
+-        self.logger = logging.getLogger('ssh-key-scanner(%s)' % instance_id)
+-        self.client = None
+-        self.connected = False
+-
+-    def scan(self):
+-        self.logger.debug('getting fingerprints for %s', self.hostname)
+-        try:
+-            fingerprints = self.get_fingerprints_for_host()
+-            self.logger.debug('fingerprints = %s', fingerprints)
+-            if (len(fingerprints) > 0):
+-                self.state = "finished"
+-                self.fingerprint = fingerprints[0]
+-        except None:
+-            pass
+-        return self.fingerprint
+-
+-    def get_fingerprints_for_host(self):
+-        # return an empty list on "no keys found"
+-        # return a list of key fingerprint data on success
+-        #  where each key fingerprint data is an array like:
+-        #   (2048 c7:c8:1d:0f:d9:..:6f:0a:8a:fe localhost (RSA))
+-
+-        # use paramiko here
+-        self.client = SSHClient()
+-        client = self.client
+-        client.set_log_channel('ssh-key-scanner(%s)' % self.instance_id)
+-
+-        if self.options.known_hosts is not None:
+-            policy = PermanentMissingHostKeyPolicy()
+-            """ This step ensures we save the keys, otherwise that step will be
+-                skipped in AutoAddPolicy.missing_host_key """
+-            for path in self.options.known_hosts:
+-                if not os.path.isfile(path):
+-                    # if the file doesn't exist, then
+-                    # create it empty
+-                    fp = open(path, "w")
+-                    fp.close()
+-                client.load_host_keys(path)
+-        else:
+-            policy = TemporaryMissingHostKeyPolicy()
+-        client.set_missing_host_key_policy(policy)
+-
+-        pkey = None
+-        if self.options.privkey is not None:
+-            # TODO support password protected key file
+-            pkey = paramiko.RSAKey.from_private_key_file(self.options.privkey)
+-
+-        retries = 0
+-
+-        allkeys = []
+-
+-        while 1:
+-            try:
+-                client.connect(self.hostname, self.port,
+-                    username=self.options.ssh_user, pkey=pkey)
+-                self.connected = True
+-                break
+-            except AuthenticationException as (message):
+-                self.logger.warning('auth failed (non fatal) %s', message)
+-                break
+-            except Exception as (e):
+-                retries += 1
+-                if retries > 5:
+-                    raise Exception('gave up after retrying ssh %d times' %
+-                                    retries)
+-                self.logger.info(e)
+-                self.logger.debug('retry #%d... sleeping %d seconds..',
+-                    retries, self.options.sleep_time)
+-                time.sleep(self.options.sleep_time)
+-
+-        rlist = []
+-
+-        allkeys.extend(policy.getKeys())
+-        allkeys.append(client.get_transport().get_remote_server_key())
+-
+-        for key in allkeys:
+-
+-            if type(key) == paramiko.RSAKey or type(key) == paramiko.PKey:
+-                keytype = '(RSA)'
+-            elif type(key) == paramiko.DSSKey:
+-                keytype = '(DSA)'
+-            else:
+-                raise Exception('Cannot handle type %s == %s' %
+-                    (type(key).__name__, key))
+-
+-            fp = key.get_fingerprint().encode("hex")
+-            fp = ':'.join(re.findall('..', fp))
+-            rlist.append((key.get_bits(), fp, keytype))
+-
+-        return rlist
+-
+-    def run_commands(self):
+-        if (self.options.ssh_run_cmd is not None and
+-            len(self.options.ssh_run_cmd)):
+-            if not self.connected:
+-                self.logger.critical('cannot run command, ssh did not connect')
+-                sys.exit(1)
+-            ecmd = ' '.join(self.options.ssh_run_cmd)
+-            self.logger.debug('running %s', ecmd)
+-            inouterr = self.client.exec_command(ecmd)
+-            try:
+-                for line in inouterr[1]:
+-                    print line,
+-            except:
+-                pass
+-            try:
+-                for line in inouterr[2]:
+-                    print >> sys.stderr(line)
+-            except:
+-                pass
+-
+-        if self.connected:
+-            self.client.close()
+-            self.connected = False
+-
+-
+-def get_auto_instance_type(ami_id, provider):
+-    cmd = '%s-describe-images' % provider
+-    args = [cmd, ami_id]
+-    logging.debug('running %s', args)
+-    rimages = Popen(args, stdout=PIPE)
+-    deftype = {'i386': 'm1.small', 'x86_64': 'm1.large'}
+-
+-    try:
+-        for line in rimages.stdout:
+-            # Just in case there are %'s, don't confusee logging
+-            # XXX print these out instead
+-            logging.debug(line.replace('%', '%%').strip())
+-            parts = line.split("\t")
+-            if parts[0] == 'IMAGE':
+-                itype = parts[7]
+-                if itype in deftype:
+-                    logging.info('auto instance type = %s', deftype[itype])
+-                    return deftype[itype]
+-    finally:
+-        rcode = rimages.wait()
+-
+-    logging.warning('ami not found, returning default m1.small')
+-    return("m1.small")
+-
+-
+-def timeout_handler(signum, frame):
+-    logging.critical('timeout reached, exiting')
+-    sys.exit(1)
+-
+-
+-def handle_runargs(option, opt_str, value, parser):
+-    delim = getattr(parser.values, "runargs_delim", None)
+-    cur = getattr(parser.values, "runargs", [])
+-    if cur is None:
+-        cur = []
+-    cur.extend(value.split(delim))
+-    setattr(parser.values, "runargs", cur)
+-    return
+-
+-
+-def main():
+-    parser = OptionParser(
+-        usage="usage: %prog [options] ids|(-- raw args for provider scripts)")
+-    parser.add_option("-t", "--instance-type", dest="inst_type",
+-        help="instance type", metavar="TYPE",
+-        default="auto")
+-    parser.add_option("-k", "--key", dest="keypair_name",
+-        help="keypair name", metavar="TYPE",
+-        default="auto")
+-    parser.add_option("-n", "--instance-count", dest="count",
+-        help="instance count", metavar="TYPE", type="int",
+-        default=1)
+-    parser.add_option("", "--ssh-privkey", dest="privkey",
+-        help="private key to connect with (ssh -i)", metavar="id_rsa",
+-        default=None)
+-    parser.add_option("", "--ssh-pubkey", dest="pubkey",
+-        help="public key to insert into image)", metavar="id_rsa.pub",
+-        default=None)
+-    parser.add_option("", "--ssh-run-cmd", dest="ssh_run_cmd",
+-        action="append", nargs=0,
+-        help="run this command when ssh'ing", default=None)
+-    parser.add_option("", "--ssh-user", dest="ssh_user",
+-        help="connect with ssh as user", default=None)
+-    parser.add_option("", "--associate-ip", dest="ip",
+-        help="associate elastic IP with instance", metavar="IP_ADDR",
+-        default=None)
+-    parser.add_option("", "--attach-volume", dest="vol",
+-        help="attach EBS volume with instance", metavar="VOLUME_ID",
+-        default=None)
+-    parser.add_option("", "--known-hosts", dest="known_hosts", action="append",
+-        metavar="KnownHosts", default=None,
+-        help="write host keys to specified known_hosts file. "
+-             "Specify multiple times to read keys from multiple files "
+-             "(only updates last one)")
+-    parser.add_option("-l", "--launchpad-id", dest="launchpad_id",
+-        action="append", metavar="lpid", default=None,
+-        help="launchpad ids to pull SSH keys from "
+-             "(multiple times adds to the list)")
+-    parser.add_option("-i", "--instance-ids", dest="instance_ids",
+-        action="store_true", default=False,
+-        help="expect instance ids instead of ami ids,"
+-             "skips -run-instances")
+-    parser.add_option("", "--all-instances", dest="all_instances",
+-        action="store_true", default=False,
+-        help="query all instances already defined "
+-             "(running/pending/terminated/etc)")
+-    parser.add_option("", "--run-args", dest="runargs", action="callback",
+-        callback=handle_runargs, type="string",
+-         help="pass option through to run-instances")
+-    parser.add_option("", "--run-args-delim", dest="runargs_delim",
+-        help="split run-args options with delimiter",
+-        default=None)
+-    parser.add_option("", "--verify-ssh", dest="verify_ssh",
+-        action="store_true",
+-        help="verify SSH keys against console output (implies --wait-for=ssh)",
+-        default=False)
+-    parser.add_option("", "--wait-for", dest="wait_for",
+-        help="wait for one of: ssh , running", default=None)
+-    parser.add_option("-p", "--provider", dest="provider",
+-        help="either euca or ec2", default=None)
+-    parser.add_option("-v", "--verbose", action="count", dest="loglevel",
+-        help="increase logging level", default=3)
+-    parser.add_option("-q", "--quiet", action="store_true", dest="quiet",
+-        help="produce no output or error messages", default=False)
+-    parser.add_option("", "--sleep-time", dest="sleep_time",
+-        help="seconds to sleep between polling", default=2)
+-    parser.add_option("", "--teardown", dest="teardown", action="store_true",
+-        help="terminate instances at the end", default=False)
+-
+-    (options, args) = parser.parse_args()
+-
+-    if (os.path.basename(sys.argv[0]).startswith("uec") and
+-        os.getenv("CLOUD_UTILS_WARN_UEC", "0") == "0"):
+-        sys.stderr.write("WARNING: '%s' is now 'cloud-run-instances'. %s\n" %
+-            (os.path.basename(sys.argv[0]), "Please update tools or docs"))
+-
+-    if len(args) < 1 and not options.all_instances:
+-        parser.error('you must pass at least one ami ID')
+-
+-    # loglevel should be *reduced* every time -v is passed,
+-    # see logging docs for more
+-    if options.quiet:
+-        sys.stderr = open('/dev/null', 'w')
+-        sys.stdout = sys.stderr
+-    else:
+-        loglevel = 6 - options.loglevel
+-        if loglevel < 1:
+-            loglevel = 1
+-        # logging module levels are 0,10,20,30 ...
+-        loglevel = loglevel * 10
+-
+-        logging.basicConfig(level=loglevel,
+-            format="%(asctime)s %(name)s/%(levelname)s: %(message)s",
+-            stream=sys.stderr)
+-
+-        logging.debug("loglevel = %d", loglevel)
+-
+-    provider = options.provider
+-    if options.provider is None:
+-        provider = os.getenv('EC2PRE', 'euca')
+-
+-    if options.ssh_run_cmd == [()]:
+-        options.ssh_run_cmd = args
+-
+-    if options.known_hosts is None:
+-        options.known_hosts = [os.path.expanduser('~/.ssh/known_hosts')]
+-
+-    if options.known_hosts is not None and len(options.known_hosts):
+-        path = None
+-        for path in options.known_hosts:
+-            if not os.access(path, os.R_OK):
+-                logging.warning('known_hosts file %s is not readable!', path)
+-        # paramiko writes to the last one
+-        if not os.access(path, os.W_OK):
+-            logging.critical('known_hosts file %s is not writable!', path)
+-
+-    logging.debug("provider = %s", provider)
+-
+-    logging.debug("instance type is %s", options.inst_type)
+-
+-    if options.instance_ids or options.all_instances:
+-
+-        if options.all_instances:
+-            pending_instance_ids = ['']
+-        else:
+-            pending_instance_ids = args
+-
+-    else:
+-
+-        if len(args) < 1:
+-            raise Exception('you must pass at least one AMI ID')
+-
+-        ami_id = args[0]
+-        del(args[0])
+-
+-        logging.debug("ami_id = %s", ami_id)
+-
+-        if options.inst_type == "auto":
+-            options.inst_type = get_auto_instance_type(ami_id, provider)
+-
+-        pending_instance_ids = []
+-
+-        cmd = '%s-run-instances' % provider
+-
+-        run_inst_args = [cmd]
+-
+-        # these variables pass through to run-instances
+-        run_inst_pt = {
+-            "instance-count": options.count,
+-            "instance-type": options.inst_type,
+-            "key": options.keypair_name,
+-             }
+-
+-        for key, val in run_inst_pt.iteritems():
+-            if key is not None and key != "":
+-                run_inst_args.append("--%s=%s" % (key, val))
+-
+-        if options.launchpad_id:
+-            run_inst_args.append('--user-data')
+-            run_inst_args.append(CC_IMPORT_SSH %
+-                ' '.join(options.launchpad_id))
+-
+-        if options.runargs is not None:
+-            run_inst_args.extend(options.runargs)
+-
+-        run_inst_args.append(ami_id)
+-
+-        # run-instances with pass through args
+-        logging.debug("executing %s", run_inst_args)
+-        logging.info("starting instances with ami_id = %s", ami_id)
+-
+-        rinstances = Popen(run_inst_args, stdout=PIPE)
+-        #INSTANCE    i-32697259    ami-2d4aa444            pending\
+-        #    0        m1.small    2010-06-18T18:28:21+0000\
+-        #    us-east-1b    aki-754aa41c            \
+-        #    monitoring-disabled                    instance-store
+-        try:
+-            for line in rinstances.stdout:
+-                # Just in case there are %'s, don't confusee logging
+-                # XXX print these out instead
+-                logging.debug(line.replace('%', '%%').strip())
+-                parts = line.split("\t")
+-                if parts[0] == 'INSTANCE':
+-                    pending_instance_ids.append(parts[1])
+-        finally:
+-            rcode = rinstances.wait()
+-
+-        logging.debug("command returned %d", rcode)
+-        logging.info("instances started: %s", pending_instance_ids)
+-
+-        if bool(rcode):
+-            raise Exception('%s failed' % cmd)
+-
+-    if len(pending_instance_ids) < 1:
+-        raise Exception('no instances were started!')
+-
+-    cmd = '%s-describe-instances' % provider
+-
+-    instances = []
+-
+-    timeout_date = time.time() + 600
+-
+-    signal.signal(signal.SIGALRM, timeout_handler)
+-    signal.alarm(600)
+-
+-    logging.debug("timeout at %s", time.ctime(timeout_date))
+-
+-    # We must wait for ssh to run commands
+-    if options.verify_ssh and not options.wait_for == 'ssh':
+-        logging.info('--verify-ssh implies --wait-for=ssh')
+-        options.wait_for = 'ssh'
+-
+-    if options.ssh_run_cmd and not options.wait_for == 'ssh':
+-        logging.info('--ssh-run-cmd implies --wait-for=ssh')
+-        options.wait_for = 'ssh'
+-
+-    while len(pending_instance_ids):
+-        new_pending_instance_ids = []
+-        describe_inst_args = [cmd]
+-
+-        # remove '', confuses underlying commands
+-        pids = []
+-        for iid in pending_instance_ids:
+-            if len(iid):
+-                pids.append(iid)
+-        if len(pids):
+-            describe_inst_args.extend(pending_instance_ids)
+-
+-        logging.debug('running %s', describe_inst_args)
+-        rdescribe = Popen(describe_inst_args, stdout=PIPE)
+-        try:
+-            for line in rdescribe.stdout:
+-                logging.debug(line.replace('%', '%%').strip())
+-                parts = line.split("\t")
+-                if parts[0] == 'INSTANCE':
+-                    iid = parts[1]
+-                    istatus = parts[5]
+-                    if istatus == 'terminated':
+-                        logging.debug('%s is terminated, ignoring...', iid)
+-                    elif istatus != 'running' and options.wait_for:
+-                        logging.warning('%s is %s', iid, istatus)
+-                        new_pending_instance_ids.append(iid)
+-                    elif istatus != 'running' and options.vol:
+-                        logging.warning('%s is %s', iid, istatus)
+-                        new_pending_instance_ids.append(iid)
+-                    else:
+-                        logging.info("%s %s", iid, istatus)
+-                        inst = Instance()
+-                        inst.id = iid
+-                        inst.hostname = parts[3]
+-                        inst.output = line
+-                        instances.append(inst)
+-        finally:
+-            rcode = rdescribe.wait()
+-
+-        pending_instance_ids = new_pending_instance_ids
+-
+-        logging.debug("command returned %d", rcode)
+-        logging.debug("pending instances: %s", pending_instance_ids)
+-
+-        if bool(rcode):
+-            raise Exception('%s failed' % cmd)
+-
+-        if len(pending_instance_ids):
+-            logging.debug('sleeping %d seconds', options.sleep_time)
+-            time.sleep(options.sleep_time)
+-
+-    if options.ip:
+-        ips = options.ip.split(',')
+-        if len(ips) < len(instances):
+-            logging.warning(
+-                'only %d ips given, some instances will not get an ip',
+-                len(ips))
+-        elif len(ips) > len(instances):
+-            logging.warning('%d ips given, some ips will not be associated',
+-                            len(ips))
+-
+-        rcmds = []
+-        ips.reverse()
+-        for inst in instances:
+-            cmd = '%s-associate-address' % provider
+-            if len(ips) < 1:
+-                break
+-            ip = ips.pop()
+-            aargs = [cmd, '-i', inst.id, ip]
+-            logging.debug('running %s', aargs)
+-            rassociate = Popen(aargs, stdout=PIPE)
+-            rcmds.append(rassociate)
+-        for rcmd in rcmds:
+-            # dump stdin into the inst object
+-            try:
+-                for line in rcmd.stdout:
+-                    logging.info(line)
+-            finally:
+-                ret = rcmd.wait()
+-                if bool(ret):
+-                    logging.debug('associate-ip returned %d', ret)
+-
+-    if options.vol:
+-        # as you can start multiple instances, support multiple vols like ips,
+-        # instead of multiple volumes on one instance
+-        vols = options.vol.split(',')
+-        if len(vols) < len(instances):
+-            logging.warning('only %d volumes given, some instances will not'
+-                ' get a volume attached', len(vols))
+-        elif len(vols) > len(instances):
+-            logging.warning(
+-                '%d volumes given, some volumes will not be associated',
+-                len(vols))
+-
+-        rcmds = []
+-        vols.reverse()
+-        for inst in instances:
+-            # instance needs to be 'running' not 'pending' before attaching
+-            # volume, otherwise it fails
+-            logging.info('waiting for instance to run')
+-            cmd = '%s-attach-volume' % provider
+-            if len(vols) < 1:
+-                break
+-            vol = vols.pop()
+-            dev = '/dev/sdb'
+-            args = [cmd, '-i', inst.id, '-d', dev, vol]
+-            logging.debug('running %s', args)
+-            logging.info("attaching volume with id = %s to instance id = %s",
+-                          vol, inst.id)
+-            rattach = Popen(args, stdout=PIPE)
+-            rcmds.append(rattach)
+-        for rcmd in rcmds:
+-            # dump stdin into the inst object
+-            try:
+-                for line in rcmd.stdout:
+-                    logging.info(line)
+-            finally:
+-                ret = rcmd.wait()
+-                if bool(ret):
+-                    logging.debug('attach-volume returned %d', ret)
+-
+-    if options.wait_for == 'ssh':
+-        logging.info('waiting for ssh access')
+-        for inst in instances:
+-            pid = os.fork()
+-            if pid == 0:
+-                ssh_key_scan = SshKeyScanner(inst.id, inst.hostname, options)
+-                ssh_fingerprint = ssh_key_scan.scan()
+-                if options.verify_ssh:
+-                    # For ec2, it can take 3.5 minutes or more to get console
+-                    # output, do this last, and only if we have to.
+-                    cons_fp_scan = ConsoleFingerprintScanner(inst.id,
+-                        inst.hostname, provider, options)
+-                    console_fingerprint = cons_fp_scan.scan()
+-
+-                    if console_fingerprint == ssh_fingerprint:
+-                        logging.debug('fingerprint match made for iid = %s',
+-                            inst.id)
+-                    else:
+-                        fmt = 'fingerprints do not match for iid = %s'
+-                        raise Exception(fmt % inst.id)
+-                ssh_key_scan.run_commands()
+-                raise SystemExit
+-            else:
+-                logging.debug('child pid for %s is %d', inst.id, pid)
+-                inst.child = pid
+-        logging.info('Waiting for %d children', len(instances))
+-        final_instances = []
+-
+-        for inst in instances:
+-            try:
+-                (pid, status) = os.waitpid(inst.child, 0)
+-            except:
+-                logging.critical('%s - %d doesn\'t exist anymore?', inst.id,
+-                                 pid)
+-            logging.debug('%d returned status %d', pid, status)
+-            if not bool(status):
+-                final_instances.append(inst)
+-        instances = final_instances
+-
+-    """ If we reach here, all has happened in the expected manner so
+-        we should produce the expected output which is instance-id\\tip\\n """
+-
+-    final_instance_ids = []
+-    for inst in instances:
+-        final_instance_ids.append(inst.id)
+-
+-    if options.teardown:
+-        terminate = ['%s-terminate-instances' % provider]
+-        terminate.extend(final_instance_ids)
+-        logging.debug('running %s', terminate)
+-        logging.info('terminating instances...')
+-        rterm = Popen(terminate, stdout=sys.stderr, stderr=sys.stderr)
+-        rterm.wait()
+-
+-
+-if __name__ == "__main__":
+-    main()
+-
+-# vi: ts=4 expandtab
+
+=== modified file 'bin/ec2metadata'
+--- old/bin/ec2metadata	2012-07-16 17:40:32 +0000
++++ new/bin/ec2metadata	2015-03-11 18:07:40 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python3
+ #
+ #    Query and display EC2 metadata related to the AMI instance
+ #    Copyright (c) 2009 Canonical Ltd. (Canonical Contributor Agreement 2.5)
+@@ -67,9 +67,18 @@
+ import sys
+ import time
+ import getopt
+-import urllib2
+ import socket
+-import urlparse
++import os
++try:
++    from urllib import request as urllib_request
++    from urllib import error as urllib_error
++    from urllib import parse as urllib_parse
++except ImportError as e:
++    # python2
++    import urllib2 as urllib_request
++    import urllib2 as urllib_error
++    import urlparse as urllib_parse
++
+ 
+ METAOPTS = ['ami-id', 'ami-launch-index', 'ami-manifest-path',
+             'ancestor-ami-ids', 'availability-zone', 'block-device-mapping',
+@@ -79,6 +88,12 @@
+             'public-keys', 'ramdisk-id', 'reserveration-id', 'security-groups',
+             'user-data']
+ 
++binstdout = os.fdopen(sys.stdout.fileno(), 'wb')
++def print_binary(data):
++    if not isinstance(data, bytes):
++        data = data.encode()
++    binstdout.write(data)
++    binstdout.flush()
+ 
+ class Error(Exception):
+     pass
+@@ -90,7 +105,7 @@
+     def __init__(self, burl=instdata_url):
+         self.burl = burl
+ 
+-        s = urlparse.urlsplit(burl)
++        s = urllib_parse.urlsplit(burl)
+         addr = s.netloc.split(":")[0]
+         port = s.port
+         if s.port is None:
+@@ -107,17 +122,19 @@
+                 s.connect((addr, port))
+                 s.close()
+                 return True
+-            except socket.error, e:
++            except socket.error as e:
+                 time.sleep(1)
+ 
+         return False
+ 
+-    def _get(self, uri):
++    def _get(self, uri, decode=True):
+         url = "%s/%s" % (self.burl, uri)
+         try:
+-            resp = urllib2.urlopen(urllib2.Request(url))
++            resp = urllib_request.urlopen(urllib_request.Request(url))
+             value = resp.read()
+-        except urllib2.HTTPError as e:
++            if decode:
++                value = value.decode()
++        except urllib_error.HTTPError as e:
+             if e.code == 404:
+                 return None
+             # Eucalyptus may raise a 500 (Internal Server Error)
+@@ -151,7 +168,7 @@
+             return public_keys
+ 
+         if metaopt == 'user-data':
+-            return self._get('user-data')
++            return self._get('user-data', decode=False)
+ 
+         return self._get('meta-data/' + metaopt)
+ 
+@@ -173,18 +190,23 @@
+             value = "unavailable"
+ 
+         if prefix:
+-            print "%s: %s" % (metaopt, value)
++            print("%s: %s" % (metaopt, value))
++        elif metaopt == "user-data":
++            # We want to avoid binary blob corruption while printing as string
++            print_binary(value)
+         else:
+-            print value
++            print(value)
+ 
+ 
+ def usage(s=None):
+     """display usage and exit"""
+ 
++    msg = ""
+     if s:
+-        print >> sys.stderr, "Error:", s
+-    print >> sys.stderr, "Syntax: %s [options]" % sys.argv[0]
+-    print >> sys.stderr, __doc__
++        msg = "Error: %s\n" % s
++    msg += "Syntax: %s [options]\n" % sys.argv[0]
++    msg += __doc__
++    sys.stderr.write(msg + "\n")
+     sys.exit(1)
+ 
+ 
+@@ -196,7 +218,7 @@
+         getopt_metaopts.append('help')
+         getopt_metaopts.append('url=')
+         opts, args = getopt.gnu_getopt(sys.argv[1:], "hu:", getopt_metaopts)
+-    except getopt.GetoptError, e:
++    except getopt.GetoptError as e:
+         usage(e)
+ 
+     burl = instdata_url
+
+=== modified file 'bin/growpart'
+--- old/bin/growpart	2013-03-21 08:40:05 +0000
++++ new/bin/growpart	2015-07-15 15:12:36 +0000
+@@ -17,8 +17,8 @@
+ #    You should have received a copy of the GNU General Public License
+ #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ 
+-# the fudge factor. if its within this many 512 byte sectors, dont bother
+-FUDGE=${GROWPART_FUDGE:-$((20*1024))}
++# the fudge factor. if within this many bytes dont bother
++FUDGE=${GROWPART_FUDGE:-$((1024*1024))}
+ TEMP_D=""
+ RESTORE_FUNC=""
+ RESTORE_HUMAN=""
+@@ -28,7 +28,9 @@
+ PT_UPDATE=false
+ DRY_RUN=0
+ 
+-MBR_CHS=""
++SFDISK_VERSION=""
++SFDISK_2_26="22600"
++SFDISK_V_WORKING_GPT="22603"
+ MBR_BACKUP=""
+ GPT_BACKUP=""
+ _capture=""
+@@ -63,9 +65,13 @@
+ 		if ${RESTORE_FUNC} ; then
+ 			error "***** Appears to have gone OK ****"
+ 		else
+-			error "***** FAILED! or original partition table" \
+-				"looked like: ****"
+-			cat "${RESTORE_HUMAN}" 1>&2
++			error "***** FAILED! ******"
++			if [ -n "${RESTORE_HUMAN}" -a -f "${RESTORE_HUMAN}" ]; then
++				error "**** original table looked like: ****"
++				cat "${RESTORE_HUMAN}" 1>&2
++			else
++				error "We seem to have not saved the partition table!"
++			fi
+ 		fi
+ 	fi
+ 	[ -z "${TEMP_D}" -o ! -d "${TEMP_D}" ] || rm -Rf "${TEMP_D}"
+@@ -109,7 +115,7 @@
+    options:
+     -h | --help       print Usage and exit
+          --fudge F    if part could be resized, but change would be
+-                      less than 'F', do not resize (default: ${FUDGE})
++                      less than 'F' bytes, do not resize (default: ${FUDGE})
+     -N | --dry-run    only report what would be done, show new 'sfdisk -d'
+     -v | --verbose    increase verbosity / debug
+     -u | --update  R  update the the kernel partition table info after growing
+@@ -132,8 +138,25 @@
+ 	exit 2
+ }
+ 
+-mbr_restore() {
+-	sfdisk --no-reread "${DISK}" ${MBR_CHS} -I "${MBR_BACKUP}"
++sfdisk_restore_legacy() {
++	sfdisk --no-reread "${DISK}" -I "${MBR_BACKUP}"
++}
++
++sfdisk_restore() {
++	# files are named: sfdisk-<device>-<offset>.bak
++	local f="" offset="" fails=0
++	for f in "${MBR_BACKUP}"*.bak; do
++		[ -f "$f" ] || continue
++		offset=${f##*-}
++		offset=${offset%.bak}
++		[ "$offset" = "$f" ] && {
++			error "WARN: confused by file $f";
++			continue;
++		}
++		dd "if=$f" "of=${DISK}" seek=$(($offset)) bs=1 conv=notrunc ||
++			{ error "WARN: failed restore from $f"; fails=$(($fails+1)); }
++	done
++	return $fails
+ }
+ 
+ sfdisk_worked_but_blkrrpart_failed() {
+@@ -146,9 +169,30 @@
+ 	return
+ }
+ 
+-mbr_resize() {
+-	RESTORE_HUMAN="${TEMP_D}/recovery"
+-	MBR_BACKUP="${TEMP_D}/orig.save"
++get_sfdisk_version() {
++	# set SFDISK_VERSION to MAJOR*10000+MINOR*100+MICRO
++	local out oifs="$IFS" ver=""
++	[ -n "$SFDISK_VERSION" ] && return 0
++	# expected output: sfdisk from util-linux 2.25.2
++	out=$(sfdisk --version) ||
++		{ error "failed to get sfdisk version"; return 1; }
++	set -- $out
++	ver=$4
++	case "$ver" in
++		[0-9]*.[0-9]*.[0-9]|[0-9].[0-9]*)
++			IFS="."; set -- $ver; IFS="$oifs"
++			SFDISK_VERSION=$(($1*10000+$2*100+${3:-0}))
++			return 0;;
++		*) error "unexpected output in sfdisk --version [$out]"
++			return 1;;
++	esac
++}
++
++resize_sfdisk() {
++	local humanpt="${TEMP_D}/recovery"
++	local mbr_backup="${TEMP_D}/orig.save"
++	local restore_func=""
++	local format="$1"
+ 
+ 	local change_out=${TEMP_D}/change.out
+ 	local dump_out=${TEMP_D}/dump.out
+@@ -156,31 +200,59 @@
+ 	local dump_mod=${TEMP_D}/dump.mod
+ 	local tmp="${TEMP_D}/tmp.out"
+ 	local err="${TEMP_D}/err.out"
+-
+-	local _devc cyl _w1 heads _w2 sectors _w3 tot dpart
+-	local pt_start pt_size pt_end max_end new_size change_info
+-
+-	# --show-pt-geometry outputs something like
+-	#     /dev/sda: 164352 cylinders, 4 heads, 32 sectors/track
+-	rqe sfd_geom sfdisk "${DISK}" --show-pt-geometry >"${tmp}" &&
+-		read _devc cyl _w1 heads _w2 sectors _w3 <"${tmp}" &&
+-		MBR_CHS="-C ${cyl} -H ${heads} -S ${sectors}" ||
+-		fail "failed to get CHS from ${DISK}"
+-
+-	tot=$((${cyl}*${heads}*${sectors}))
+-
+-	debug 1 "geometry is ${MBR_CHS}. total size=${tot}"
+-	rqe sfd_dump sfdisk ${MBR_CHS} --unit=S --dump "${DISK}" \
+-		>"${dump_out}" ||
++	local mbr_max_512="4294967296"
++
++	local pt_start pt_size pt_end max_end new_size change_info dpart
++	local sector_num sector_size disk_size tot out
++
++	rqe sfd_list sfdisk --list --unit=S "$DISK" >"$tmp" ||
++		fail "failed: sfdisk --list $DISK"
++	if [ "${SFDISK_VERSION}" -lt ${SFDISK_2_26} ]; then
++		# exected output contains: Units: sectors of 512 bytes, ...
++		out=$(awk '$1 == "Units:" && $5 ~ /bytes/ { print $4 }' "$tmp") ||
++			fail "failed to read sfdisk output"
++		if [ -z "$out" ]; then
++			error "WARN: sector size not found in sfdisk output, assuming 512"
++			sector_size=512
++		else
++			sector_size="$out"
++		fi
++		local _w _cyl _w1 _heads _w2 sectors _w3 t s
++		# show-size is in units of 1024 bytes (same as /proc/partitions)
++		t=$(sfdisk --show-size "${DISK}") ||
++			fail "failed: sfdisk --show-size $DISK"
++		disk_size=$((t*1024))
++		sector_num=$(($disk_size/$sector_size))
++		msg="disk size '$disk_size' not evenly div by sector size '$sector_size'"
++		[ "$((${disk_size}%${sector_size}))" -eq 0 ] ||
++			error "WARN: $msg"
++		restore_func=sfdisk_restore_legacy
++	else
++		# --list first line output:
++		# Disk /dev/vda: 20 GiB, 21474836480 bytes, 41943040 sectors
++		local _x
++		read _x _x _x _x disk_size _x sector_num _x  < "$tmp"
++		sector_size=$((disk_size/$sector_num))
++		restore_func=sfdisk_restore
++	fi
++
++	debug 1 "$sector_num sectors of $sector_size. total size=${disk_size} bytes"
++	[ $(($disk_size/512)) -gt $mbr_max_512 ] &&
++		debug 1 "WARN: disk is larger than 2TB. additional space will go unused."
++
++	rqe sfd_dump sfdisk --unit=S --dump "${DISK}" >"${dump_out}" ||
+ 		fail "failed to dump sfdisk info for ${DISK}"
++	RESTORE_HUMAN="$dump_out"
+ 
+ 	{
+-		echo "## sfdisk ${MBR_CHS} --unit=S --dump ${DISK}"
++		echo "## sfdisk --unit=S --dump ${DISK}"
+ 		cat "${dump_out}"
+-	}  >"${RESTORE_HUMAN}"
++	}  >"$humanpt"
++
+ 	[ $? -eq 0 ] || fail "failed to save sfdisk -d output"
++	RESTORE_HUMAN="$humanpt"
+ 
+-	debugcat 1 "${RESTORE_HUMAN}"
++	debugcat 1 "$humanpt"
+ 
+ 	sed -e 's/,//g; s/start=/start /; s/size=/size /' "${dump_out}" \
+ 		>"${dump_mod}" ||
+@@ -206,17 +278,38 @@
+ 	# find the minimal starting location that is >= pt_end 
+ 	max_end=$(awk '$3 == "start" { if($4 >= pt_end && $4 < min)
+ 		{ min = $4 } } END { printf("%s\n",min); }' \
+-		min=${tot} pt_end=${pt_end} "${dump_mod}") &&
++		min=${sector_num} pt_end=${pt_end} "${dump_mod}") &&
+ 		[ -n "${max_end}" ] ||
+ 		fail "failed to get max_end for partition ${PART}"
+ 
+-	debug 1 "max_end=${max_end} tot=${tot} pt_end=${pt_end}" \
++	mbr_max_sectors=$((mbr_max_512*$((sector_size/512))))
++	if [ "$max_end" -gt "$mbr_max_sectors" ]; then
++		max_end=$mbr_max_sectors
++	fi
++
++	if [ "$format" = "gpt" ]; then
++		# sfdisk respects 'last-lba' in input, and complains about
++		# partitions that go past that.  without it, it does the right thing.
++		sed -i '/^last-lba:/d' "$dump_out" ||
++			fail "failed to remove last-lba from output"
++	fi
++
++	local gpt_second_size="33"
++	if [ "${max_end}" -gt "$((${sector_num}-${gpt_second_size}))" ]; then
++		# if mbr allow subsequent conversion to gpt without shrinking the
++		# partition.  safety net at cost of 33 sectors, seems reasonable.
++		# if gpt, we can't write there anyway.
++		debug 1 "padding ${gpt_second_size} sectors for gpt secondary header"
++		max_end=$((${sector_num}-${gpt_second_size}))
++	fi
++
++	debug 1 "max_end=${max_end} tot=${sector_num} pt_end=${pt_end}" \
+ 		"pt_start=${pt_start} pt_size=${pt_size}"
+ 	[ $((${pt_end})) -eq ${max_end} ] &&
+ 		nochange "partition ${PART} is size ${pt_size}. it cannot be grown"
+-	[ $((${pt_end}+${FUDGE})) -gt ${max_end} ] &&
++	[ $((${pt_end}+(${FUDGE}/$sector_size))) -gt ${max_end} ] &&
+ 		nochange "partition ${PART} could only be grown by" \
+-		"$((${max_end}-${pt_end})) [fudge=${FUDGE}]"
++		"$((${max_end}-${pt_end})) [fudge=$((${FUDGE}/$sector_size))]"
+ 
+ 	# now, change the size for this partition in ${dump_out} to be the
+ 	# new size
+@@ -237,10 +330,11 @@
+ 		exit 0
+ 	fi
+ 
+-	LANG=C sfdisk --no-reread "${DISK}" ${MBR_CHS} --force \
+-		-O "${MBR_BACKUP}" <"${new_out}" >"${change_out}" 2>&1
++	MBR_BACKUP="${mbr_backup}"
++	LANG=C sfdisk --no-reread "${DISK}" --force \
++		-O "${mbr_backup}" <"${new_out}" >"${change_out}" 2>&1
+ 	ret=$?
+-	[ $ret -eq 0 ] || RESTORE_FUNC="mbr_restore"
++	[ $ret -eq 0 ] || RESTORE_FUNC="${restore_func}"
+ 
+ 	if [ $ret -eq 0 ]; then
+ 		:
+@@ -279,7 +373,7 @@
+ 	sgdisk -l "${GPT_BACKUP}" "${DISK}"
+ }
+ 
+-gpt_resize() {
++resize_sgdisk() {
+ 	GPT_BACKUP="${TEMP_D}/pt.backup"
+ 
+ 	local pt_info="${TEMP_D}/pt.info"
+@@ -290,14 +384,21 @@
+ 	local dev="disk=${DISK} partition=${PART}"
+ 
+ 	local pt_start pt_end pt_size last pt_max code guid name new_size
+-	local old new change_info
++	local old new change_info sector_size
+ 	
+ 	# Dump the original partition information and details to disk. This is
+ 	# used in case something goes wrong and human interaction is required
+ 	# to revert any changes.
+ 	rqe sgd_info sgdisk "--info=${PART}" --print "${DISK}" >"${pt_info}" ||
++		fail "${dev}: failed to dump original sgdisk info"
+ 	RESTORE_HUMAN="${pt_info}"
+ 
++	sector_size=$(awk '$0 ~ /^Logical sector size:.*bytes/ { print $4 }' \
++		"$pt_info") && [ -n "$sector_size" ] || {
++		sector_size=512
++		error "WARN: did not find sector size, assuming 512"
++	}
++
+ 	debug 1 "$dev: original sgdisk info:"
+ 	debugcat 1 "${pt_info}"
+ 
+@@ -342,9 +443,9 @@
+ 	# Check if the partition can be grown
+ 	[ "${pt_end}" -eq "${pt_max}" ] &&
+ 		nochange "${dev}: size=${pt_size}, it cannot be grown"
+-	[ "$((${pt_end} + ${FUDGE}))" -gt "${pt_max}" ] &&
++	[ "$((${pt_end} + ${FUDGE}/${sector_size}))" -gt "${pt_max}" ] &&
+ 		nochange "${dev}: could only be grown by" \
+-		"$((${pt_max} - ${pt_end})) [fudge=${FUDGE}]"
++		"$((${pt_max} - ${pt_end})) [fudge=$((${FUDGE}/$sector_size))]"
+ 
+ 	# The partition can be grown if we made it here. Get some more info
+ 	# about it so we can do it properly.
+@@ -357,6 +458,8 @@
+ 		fail "${dev}: failed to parse sgdisk details"
+ 
+ 	debug 1 "${dev}: code=${code} guid=${guid} name='${name}'"
++	local wouldrun=""
++	[ "$DRY_RUN" -ne 0 ] && wouldrun="would-run"
+ 
+ 	# Calculate the new size of the partition
+ 	new_size=$((${pt_max} - ${pt_start}))
+@@ -364,11 +467,8 @@
+ 	new="new: size=${new_size},end=${pt_max}"
+ 	change_info="${dev}: start=${pt_start} ${old} ${new}"
+ 	
+-	# Dry run
+-	[ "${DRY_RUN}" -ne 0 ] && change "${change_info}"
+-
+ 	# Backup the current partition table, we're about to modify it
+-	rq sgd_backup sgdisk "--backup=${GPT_BACKUP}" "${DISK}" ||
++	rq sgd_backup $wouldrun sgdisk "--backup=${GPT_BACKUP}" "${DISK}" ||
+ 		fail "${dev}: failed to backup the partition table"
+ 
+ 	# Modify the partition table. We do it all in one go (the order is
+@@ -379,16 +479,19 @@
+ 	#  - set the partition code
+ 	#  - set the partition GUID
+ 	#  - set the partition name
+-	rq sgdisk_mod sgdisk --move-second-header "--delete=${PART}" \
++	rq sgdisk_mod $wouldrun sgdisk --move-second-header "--delete=${PART}" \
+ 		"--new=${PART}:${pt_start}:${pt_max}" \
+ 		"--typecode=${PART}:${code}" \
+ 		"--partition-guid=${PART}:${guid}" \
+ 		"--change-name=${PART}:${name}" "${DISK}" &&
+-		rq pt_update pt_update "$DISK" "$PART" || {
++		rq pt_update $wouldrun pt_update "$DISK" "$PART" || {
+ 		RESTORE_FUNC=gpt_restore
+ 		fail "${dev}: failed to repartition"
+ 	}
+ 
++	# Dry run
++	[ "${DRY_RUN}" -ne 0 ] && change "${change_info}"
++
+ 	changed "${change_info}"
+ }
+ 
+@@ -418,7 +521,20 @@
+ 	local label="$1" ret="" efile=""
+ 	efile="$TEMP_D/$label.err"
+ 	shift;
+-	debug 2 "running[$label][$_capture]" "$@"
++
++	local rlabel="running"
++	[ "$1" = "would-run" ] && rlabel="would-run" && shift
++
++	local cmd="" x=""
++	for x in "$@"; do
++		[ "${x#* }" != "$x" -o "${x#* \"}" != "$x" ] && x="'$x'"
++		cmd="$cmd $x"
++	done
++	cmd=${cmd# }
++
++	debug 2 "$rlabel[$label][$_capture]" "$cmd"
++	[ "$rlabel" = "would-run" ] && return 0
++
+ 	if [ "${_capture}" = "erronly" ]; then
+ 		"$@" 2>"$TEMP_D/$label.err"
+ 		ret=$?
+@@ -448,10 +564,18 @@
+ 	fi
+ 
+ 	if command -v partx >/dev/null 2>&1; then
+-		partx --help | grep -q -- --update || {
+-			reason="partx has no '--update' flag in usage."
++		local out="" ret=0
++		out=$(partx --help 2>&1)
++		ret=$?
++		if [ $ret -eq 0 ]; then
++			echo "$out" | grep -q -- --update || {
++				reason="partx has no '--update' flag in usage."
++				found="off"
++			}
++		else
++			reason="'partx --help' returned $ret. assuming it is old."
+ 			found="off"
+-		}
++		fi
+ 	else
+ 		reason="no 'partx' command"
+ 		found="off"
+@@ -498,6 +622,8 @@
+ 	if ! $update; then
+ 		return 0
+ 	fi
++	# partx only works on block devices (do not run on file)
++	[ -b "$dev" ] || return 0
+ 	partx --update "$part" "$dev"
+ }
+ 
+@@ -505,7 +631,76 @@
+ 	command -v "${1}" >/dev/null 2>&1
+ }
+ 
++resize_sgdisk_gpt() {
++	resize_sgdisk gpt
++}
++
++resize_sgdisk_dos() {
++	fail "unable to resize dos label with sgdisk"
++}
++
++resize_sfdisk_gpt() {
++	resize_sfdisk gpt
++}
++
++resize_sfdisk_dos() {
++	resize_sfdisk dos
++}
++
++get_table_format() {
++	local out="" disk="$1"
++	if has_cmd blkid && out=$(blkid -o value -s PTTYPE "$disk") &&
++		[ "$out" = "dos" -o "$out" = "gpt" ]; then
++		_RET="$out"
++		return
++	fi
++	_RET="dos"
++	if [ ${SFDISK_VERSION} -lt ${SFDISK_2_26} ] &&
++		out=$(sfdisk --id --force "$disk" 1 2>/dev/null); then
++		if [ "$out" = "ee" ]; then
++			_RET="gpt"
++		else
++			_RET="dos"
++		fi
++		return
++	elif out=$(LANG=C sfdisk --list "$disk"); then
++		out=$(echo "$out" | sed -e '/Disklabel type/!d' -e 's/.*: //')
++		case "$out" in
++			gpt|dos) _RET="$out";;
++			*) error "WARN: unknown label $out";;
++		esac
++	fi
++}
++
++get_resizer() {
++	local format="$1" user=${2:-"auto"}
++
++	case "$user" in
++		sgdisk) _RET="resize_sgdisk_$format"; return;;
++		sfdisk) _RET="resize_sfdisk_$format"; return;;
++		auto) :;;
++		*) error "unexpected input: '$user'";;
++	esac
++
++	if [ "$format" = "dos" ]; then
++		_RET="resize_sfdisk_dos"
++		return 0
++	fi
++
++	if [ "${SFDISK_VERSION}" -ge ${SFDISK_V_WORKING_GPT} ]; then
++		# sfdisk 2.26.2 works for resize but loses type (LP: #1474090)
++		_RET="resize_sfdisk_gpt"
++	elif has_cmd sgdisk; then
++		_RET="resize_sgdisk_$format"
++	else
++		error "no tools available to resize disk with '$format'"
++		return 1
++	fi
++	return 0
++}
++
+ pt_update="auto"
++resizer=${GROWPART_RESIZER:-"auto"}
+ while [ $# -ne 0 ]; do
+ 	cur=${1}
+ 	next=${2}
+@@ -558,6 +753,7 @@
+ [ -n "${PART}" ] || bad_Usage "must supply partition-number"
+ 
+ has_cmd "sfdisk" || fail "sfdisk not found"
++get_sfdisk_version || fail
+ 
+ [ -e "${DISK}" ] || fail "${DISK}: does not exist"
+ 
+@@ -569,19 +765,16 @@
+ debug 1 "update-partition set to $PT_UPDATE"
+ 
+ mktemp_d && TEMP_D="${_RET}" || fail "failed to make temp dir"
+-trap cleanup EXIT
++trap cleanup 0 # EXIT - some shells may not like 'EXIT' but are ok with 0
+ 
+ # get the ID of the first partition to determine if it's MBR or GPT
+-id=$(sfdisk --id --force "${DISK}" 1 2>/dev/null) ||
+-	fail "unable to determine partition type"
++get_table_format "$DISK" || fail
++format=$_RET
++get_resizer "$format" "$resizer" ||
++    fail "failed to get a resizer for id '$id'"
++resizer=$_RET
+ 
+-if [ "${id}" = "ee" ] ; then
+-	has_cmd "sgdisk" || fail "GPT partition found but no sgdisk"
+-	debug 1 "found GPT partition table (id = ${id})"
+-	gpt_resize
+-else
+-	debug 1 "found MBR partition table (id = ${id})"
+-	mbr_resize
+-fi
++debug 1 "resizing $PART on $DISK using $resizer"
++"$resizer"
+ 
+ # vi: ts=4 noexpandtab
+
+=== added file 'bin/mount-image-callback'
+--- old/bin/mount-image-callback	1970-01-01 00:00:00 +0000
++++ new/bin/mount-image-callback	2016-01-27 17:53:13 +0000
+@@ -0,0 +1,430 @@
++#!/bin/bash
++
++VERBOSITY=0
++TEMP_D=""
++UMOUNTS=( )
++QEMU_DISCONNECT=""
++
++error() { echo "$@" 1>&2; }
++
++Usage() {
++	cat <<EOF
++Usage: ${0##*/} [ options ] file cmd [ args ]
++
++   mount a file to a temporary mount point and then
++   invoke the provided cmd with args
++
++   the temporary mountpoint will be put in an a environment variable
++   named MOUNTPOINT.
++
++   if any of the arguments are the literal string '_MOUNTPOINT_', then
++   they will be replaced with the mount point. Example:
++      ${0##*/} my.img chroot _MOUNTPOINT_ /bin/sh
++
++   options:
++    -v | --verbose             increase verbosity
++         --read-only           use read-only mount.
++    -m | --mountpoint MP       mount to directory MP rather than a temp dir
++         --overlay             mount via overlayfs
++    -P | --partition PARTNUM   mount partition PARTNUM (default 'auto')
++                               if 'auto', then mount part 1 if image is 
++                               partitioned otherwise mount image
++    -p | --proc                bind mount /proc
++    -s | --sys                 bind mount /sys
++    -d | --dev                 bind mount /dev
++         --system-mounts       bind mount /sys, /proc, /dev
++         --system-resolvconf   copy host's resolvconf into /etc/resolvconf
++         --format FMT          specify the format of the image.
++                               default is to automatically determine
++EOF
++}
++
++# umount_r(mp) : unmount any filesystems under r
++#  this is useful to unmount a chroot that had sys, proc ... mounted
++umount_r() {
++	local p
++	for p in "$@"; do
++		[ -n "$p" ] || continue
++		tac /proc/mounts | sh -c '
++			p=$1
++			didumount=0
++			while read s mp t opt a b ; do
++				[ "${mp}" = "${p}" -o "${mp#${p}/}" != "${mp}" ] ||
++					continue
++				umount "$mp" || exit 1
++				didumount=1
++			done
++			[ $didumount -eq 1 ] || exit 1
++			exit 0' umount_r "${p%/}"
++		[ $? -eq 0 ] || return
++	done
++}
++
++bad_Usage() { Usage 1>&2; [ $# -eq 0 ] || error "$@"; exit 1; }
++
++disconnect_qemu() {
++	[ -n "$QEMU_DISCONNECT" ] || return 0
++	local out="" nbd="$QEMU_DISCONNECT"
++	local pid="" pfile="/sys/block/${nbd#/dev/}/pid"
++	{ read pid < "$pfile" ; } >/dev/null 2>&1
++	[ -n "$pid" -a ! -d "/proc/$pid" ] && 
++		error "qemu-nbd process seems to have died. was '$pid'"
++	out=$(qemu-nbd --disconnect "$nbd" 2>&1) &&
++		QEMU_DISCONNECT="" || {
++			error "failed to disconnect $nbd";
++			error "$out"
++			return 1;
++	}
++}
++
++do_umounts() {
++	local um="" fails=0 mydir="$PWD/"
++	for um in "$@"; do
++		um=$(readlink -f "$um") || {
++			error "WARNING: failed to get full path to '$um'";
++			fails=$(($fails+1))
++			continue;
++		}
++		[ "${mydir#${um}/}" != "${mydir}" ] && {
++			error "WARNING: leaving '$mydir' to unmount $um";
++			cd /
++		}
++		umount_r "$um" || {
++			error "WARNING: unmounting filesystem at $um failed!"
++			fails=$(($fails+1))
++		}
++	done
++	return $fails
++}
++
++cleanup() {
++	if [ "${#UMOUNTS[@]}" -ne 0 ]; then
++		debug 2 "umounts: ${UMOUNTS[*]}"
++		do_umounts "${UMOUNTS[@]}"
++	fi
++	disconnect_qemu
++	[ -z "${TEMP_D}" -o ! -d "${TEMP_D}" ] ||
++		rm --one-file-system -Rf "${TEMP_D}" ||
++		error "removal of temp dir failed!"
++}
++
++debug() {
++	local level="$1"; shift;
++	[ "${level}" -gt "${VERBOSITY}" ] && return
++	error "${@}"
++}
++
++get_image_format() {
++	local img="$1" out=""
++	out=$(qemu-img info "$img") &&
++		out=$(echo "$out" | awk '$0 ~ /^file format:/ { print $3 }') &&
++		_RET="$out"
++}
++
++get_partition() {
++	# return in _RET the 'auto' partition for a image.
++	# return partition number for a partitioned image
++	# return 0 for unpartitioned
++	# return 0 if image is partitioned, 1 if not
++	local img="$1"
++	out=$(LANG=C sfdisk --list -uS "$img" 2>&1) || {
++		error "failed determining if partitioned: $out";
++		return 1;
++	}
++	if echo "$out" | grep -q 'Device.*Start.*End'; then
++		_RET=1
++	else
++		_RET=0
++	fi
++}
++
++mount_callback_umount() {
++	local img_in="$1" dev="" out="" mp="" ret="" img="" readonly=""
++	local opts="" bmounts="" system_resolvconf=false ptnum=auto
++	local cd_mountpoint=false fmt="" mp_is_tmp=false overlay=false
++	local img_mp="" workd=""
++
++	short_opts="CdhmPpsv"
++	long_opts="cd-mountpoint,dev,help,format:,mountpoint:,overlay,partition:,proc,read-only,sys,system-mounts,system-resolvconf,verbose"
++	getopt_out=$(getopt --name "${0##*/}" \
++		--options "${short_opts}" --long "${long_opts}" -- "$@") &&
++		eval set -- "${getopt_out}" ||
++		{ bad_Usage; return 1; }
++
++	while [ $# -ne 0 ]; do
++		cur=${1}; next=${2};
++		case "$cur" in
++			-C|--cd-mountpoint) cd_mountpoint=true;;
++			-d|--dev) bmounts="${bmounts:+${bmounts} }/dev";;
++			   --format) fmt=$next;;
++			-h|--help) Usage ; exit 0;;
++			-m|--mountpoint) mp=$next;;
++			-P|--partition) ptnum=$next;;
++			-O|--overlay) overlay=true;;
++			-p|--proc) bmounts="${bmounts:+${bmounts} }/proc";;
++			-s|--sys) bmounts="${bmounts:+${bmounts} }/sys";;
++			   --system-mounts) bmounts="/dev /proc /sys";;
++			   --system-resolvconf) system_resolvconf=true;;
++			-v|--verbose) VERBOSITY=$((${VERBOSITY}+1));;
++			   --opts) opts="${opts} $next"; shift;;
++			   --read-only) readonly="ro";;
++			--) shift; break;;
++		esac
++		shift;
++	done
++
++	[ $# -ge 2 ] || { bad_Usage "must provide image and cmd"; return 1; }
++
++	[ -n "$readonly" ] && { $system_resolvconf && ! $overlay; } && {
++		error "--read-only is incompatible with system-resolvconf";
++		error "maybe try with --overlay"
++		return 1;
++	}
++
++	img_in="$1"
++	shift 1
++
++	img=$(readlink -f "$img_in") ||
++		{ error "failed to get full path to $img_in"; return 1; }
++
++	[ -f "$img" ] ||
++		{ error "$img: not a file"; return 1; }
++
++	[ "$(id -u)" = "0" ] ||
++		{ error "sorry, must be root"; return 1; }
++
++	trap cleanup EXIT
++	TEMP_D=$(mktemp -d "${TMPDIR:-/tmp}/${0##*/}.XXXXXX") ||
++		{ error "failed to make tempdir"; return 1; }
++	if [ -z "$mp" ]; then
++		mp="${TEMP_D}/mp"
++		mkdir "$mp" || return
++		mp_is_tmp=true
++	else
++		[ -d "$mp" ] ||
++			{ error "mountpoint '$mp': not a directory"; return 1; }
++		mp=$(readlink -f "$mp") || {
++			error "failed to get full path to provided mountpoint";
++			return 1;
++		}
++	fi
++	if $overlay; then
++		img_mp="${TEMP_D}/underlay"
++		mkdir -p "$img_mp" || return
++	else
++		img_mp=$mp
++	fi
++
++	local cmd="" arg="" found=false
++	cmd=( )
++	for arg in "$@"; do
++		if [ "${arg}" = "_MOUNTPOINT_" ]; then
++			debug 1 "replaced string _MOUNTPOINT_ in arguments arg ${#cmd[@]}"
++			arg=$mp
++		fi
++		cmd[${#cmd[@]}]="$arg"
++	done
++
++	if [ "${cmd[0]##*/}" = "bash" -o "${cmd[0]##*/}" = "sh" ] &&
++	   [ ${#cmd[@]} -eq 0 ]; then
++		debug 1 "invoking shell ${cmd[0]}"
++		error "MOUNTPOINT=$mp"
++	fi
++
++	local hasqemu=false
++	command -v "qemu-nbd" >/dev/null 2>&1 && hasqemu=true
++
++	if out=$(set -f; mount -o loop${readonly:+,$readonly} $opts \
++			 "$img" "$img_mp" 2>&1); then
++		debug 1 "mounted simple filesystem image '$img_in'"
++		UMOUNTS[${UMOUNT[@]}]="$img_mp"
++	else
++		if ! $hasqemu; then
++			error "simple mount of '$img_in' failed."
++			error "if this not a raw image, or it is partitioned"
++			error "you must have qemu-nbd (apt-get install qemu-utils)"
++			error "mount failed with: $out"
++			return 1
++		fi
++	fi
++
++	if [ "${#UMOUNTS[@]}" -eq 0 ]; then
++		if [ ! -e /sys/block/nbd0 ] && ! grep -q nbd /proc/modules; then
++			debug 1 "trying to load nbd module"
++			modprobe nbd >/dev/null 2>&1
++			udevadm settle >/dev/null 2>&1
++		fi
++		[ -e /sys/block/nbd0 ] || {
++			error "no nbd kernel support, but simple mount failed"
++			return 1;
++		}
++
++		if [ -z "$fmt" ]; then
++			get_image_format "$img" && fmt="$_RET" || {
++				error "failed to get image format for '$img' (try --format)"
++				return 1
++			}
++		fi
++
++		local f nbd="" pidfile="" pid="" roflag=""
++		for f in /sys/block/nbd*; do
++			[ -d "$f" -a ! -f "$f/pid" ] && nbd=${f##*/} && break
++		done
++		if [ -z "$nbd" ]; then
++			error "failed to find an nbd device"
++			return 1;
++		fi
++		nbd="/dev/$nbd"
++
++		[ -n "$readonly" ] && roflag="--read-only"
++		pidfile="/sys/block/${nbd##*/}/pid" pid=""
++		if ! qemu-nbd $roflag "--format=$fmt" --connect "$nbd" "$img"; then
++			{ read pid < "$pidfile"; } >/dev/null 2>&1 &&
++				[ -d "/proc/$pid" ] &&
++				QEMU_DISCONNECT="$nbd"
++			error "failed to qemu-nbd connect $img to $nbd"
++			return 1
++		fi
++		QEMU_DISCONNECT="$nbd"
++
++		local pfile="/sys/block/${nbd#/dev/}/pid"
++		if [ ! -f "$pfile" ]; then
++			debug 1 "waiting on pidfile for $nbd in $pfile"
++			local i=0
++			while [ ! -f "$pfile" ] && i=$(($i+1)); do
++				if [ $i -eq 200 ]; then
++					error "giving up on pidfile $pfile for $nbd"
++					return 1
++				fi
++				sleep .1
++				debug 2 "."
++			done
++		fi
++
++		local nptnum=""
++		debug 1 "connected $img_in ($fmt) to $nbd. waiting for device."
++		i=0
++		while i=$(($i+1)):; do
++			get_partition "$nbd" && nptnum="$_RET" && break
++			[ $i -eq 40 ] && {
++				error "gave up on $nbd"
++				return 1
++			}
++			[ $(($i%10)) -eq 0 ] &&
++				debug 1 "waiting for $nbd to be ready."
++			sleep .1
++		done
++
++		udevadm settle >/dev/null 2>&1
++		if [ "${ptnum}" = "auto" ]; then
++			if [ "$nptnum" = "0" ]; then
++				debug 1 "unpartitioned disk."
++			else
++				debug 1 "partitioned disk."
++			fi
++			ptnum=$nptnum
++		fi
++		if [ "$ptnum" -ne 0 ]; then
++			mdev="${nbd}p${ptnum}"
++		else
++			mdev="${nbd}"
++		fi
++		i=0
++		while :; do
++			[ -b "$mdev" ] && break
++			i=$(($i+1))
++			[ $i -eq 100 ] && {
++				error "gave up on waiting for $mdev"
++				return 1
++			}
++			[ $(($i%10)) -eq 0 ] &&
++				debug 1 "waiting for $mdev part=$ptnum to be ready."
++			sleep .1
++		done
++
++		if ( set -f; mount ${ro:+-o ${ro}} $opts "$mdev" "$img_mp" ) &&
++			UMOUNTS[${#UMOUNTS[@]}]="$img_mp"; then
++			debug 1 "mounted $mdev via qemu-nbd $nbd"
++		else
++			local pid="" pfile="/sys/block/${nbd#/dev/}/pid"
++			{ read pid < "$pfile" ; } >/dev/null 2>&1
++			[ -n "$pid" -a ! -d "/proc/$pid" ] ||
++				error "qemu-nbd process seems to have died. was '$pid'"
++
++			error "failed to mount $mdev"
++			return 1
++		fi
++
++	fi
++
++	if $overlay; then
++		local olayopts="lowerdir=$img_mp,upperdir=$mp"
++		workdir="${TEMP_D}/workdir"
++		mkdir "$workdir"
++		# 3.18+ require 'workdir=' option.
++		case "$(uname -r)" in
++			2*|3.1[01234567]*|3.[0-9].*) :;;
++			*) olayopts="${olayopts},workdir=$workdir";;
++		esac
++		mount -t overlayfs -o "$olayopts" "$img_mp" "$mp" || {
++			error "failed mount -t overlayfs -o '$olayopts' '$img_mp' '$mp'"
++			return 1;
++		}
++		UMOUNTS[${#UMOUNTS[@]}]="$mp"
++	fi
++	local bindmp=""
++	for bindmp in $bmounts; do
++		[ -d "$mp${bindmp}" ] || mkdir "$mp${bindmp}" ||
++			{ error "failed mkdir $bindmp in mount"; return 1; }
++		mount --bind "$bindmp" "$mp/${bindmp}" ||
++			{ error "failed bind mount '$bindmp'"; return 1; }
++	done
++
++	if ${system_resolvconf}; then
++		local rcf="$mp/etc/resolv.conf"
++		debug 1 "replacing /etc/resolvconf"
++		if [ -e "$rcf" -o -L "$rcf" ]; then
++			local trcf="$rcf.${0##*/}.$$"
++			rm -f "$trcf" &&
++				mv "$rcf" "$trcf" && ORIG_RESOLVCONF="$trcf" ||
++				{ error "failed mv $rcf"; return 1; }
++		fi
++		cp "/etc/resolv.conf" "$rcf" ||
++			{ error "failed copy /etc/resolv.conf"; return 1; }
++	fi
++
++	local startwd="$PWD"
++	debug 1 "invoking: MOUNTPOINT=$mp" "${cmd[@]}"
++
++	${cd_mountpoint} && cd "$mp"
++	MOUNTPOINT="$mp" "${cmd[@]}"
++	ret=$?
++	cd "$startwd"
++
++	if ${system_resolvconf}; then
++		local rcf="$mp/etc/resolv.conf"
++		cmp --quiet "/etc/resolv.conf" "$rcf" >/dev/null ||
++			error "WARN: /etc/resolv.conf changed in image!"
++		rm "$rcf" &&
++			{ [ -z "$ORIG_RESOLVCONF" ] || mv "$ORIG_RESOLVCONF" "$rcf"; } ||
++			{ error "failed to restore /etc/resolv.conf"; return 1; }
++	fi
++
++	debug 1 "cmd returned $ret. unmounting $mp"
++	do_umounts "${UMOUNTS[@]}" && UMOUNTS=( ) ||
++		{ error "failed umount $img"; return 1; }
++
++	if "$mp_is_tmp"; then
++		rmdir "$img_mp" || error "WARN: failed 'rmdir $img_mp'"
++	fi
++
++	
++	if [ -n "$QEMU_DISCONNECT" ]; then
++		disconnect_qemu || return 1;
++	fi
++	return $ret
++}
++
++mount_callback_umount "$@"
++
++# vi: ts=4 noexpandtab
+
+=== modified file 'bin/ubuntu-cloudimg-query'
+--- old/bin/ubuntu-cloudimg-query	2013-02-04 16:32:56 +0000
++++ new/bin/ubuntu-cloudimg-query	2016-02-01 10:42:39 +0000
+@@ -5,7 +5,8 @@
+ NAME="ubuntu-cloudimg-query"
+ DOT_D="$HOME/.$NAME"
+ CACHE_D="$HOME/.cache/$NAME"
+-KNOWN_RELEASES="hardy karmic lucid maverick natty oneiric precise quantal raring";
++KNOWN_RELEASES="hardy karmic lucid maverick natty oneiric precise quantal
++	raring trusty utopic vivid";
+ cachelife=86400
+ 
+ error() { echo "$@" 1>&2; }
+@@ -23,6 +24,7 @@
+       -o | --output FILE    output to file rather than stdout
+       -f | --format format  change output to 'format'.
+                             default: '%{ami}\n'
++           --arch   ARCH    use the specified arch
+ 
+    Examples:
+    - get the latest ami matching default criteria for release 'n'
+@@ -122,7 +124,7 @@
+ }
+ 
+ short_opts="f:ho:v"
+-long_opts="format:,help,no-cache,output:,verbose"
++long_opts="arch:,format:,help,no-cache,output:,verbose"
+ getopt_out=$(getopt --name "${0##*/}" \
+ 	--options "${short_opts}" --long "${long_opts}" -- "$@") &&
+ 	eval set -- "${getopt_out}" ||
+@@ -134,7 +136,7 @@
+ burl="${UBUNTU_CLOUDIMG_QUERY_BASEURL:-https://cloud-images.ubuntu.com/query}"
+ store="ebs"
+ region_default="${EC2_REGION:-us-east-1}"
+-release="lucid"
++release="precise"
+ arch="amd64"
+ stream="released"
+ bname="server"
+@@ -150,6 +152,7 @@
+ while [ $# -ne 0 ]; do
+ 	cur=${1}; next=${2};
+ 	case "$cur" in
++           --arch) arch="$next"; shift;;
+ 		-h|--help) Usage ; exit 0;;
+ 		-f|--format) format=${2}; shift;;
+ 		-o|--output) output=${2}; shift;;
+@@ -169,7 +172,9 @@
+ 		rel*) stream="released";;
+ 		daily) stream=${i};;
+ 		server|desktop) bname=${i};;
+-		i386|amd64|x86_64) arch=${i}; [ "${i}" = "x86_64" ] && arch="amd64";;
++		i386|amd64|x86_64|armhf|ppc64el|arm64|s390x|powerpc)
++			arch=${i};
++			[ "${i}" = "x86_64" ] && arch="amd64";;
+ 		*-*-[0-9]) region=${i};;
+ 		ebs) store="$i";;
+ 		instance|instance-store) store="instance-store";;
+@@ -249,7 +254,13 @@
+ 	$6 == arch && $7 == region && $11 == ptype { print $8 }' \
+ 	"release=$release" "bname=${bname}" \
+ 	"store=$store" "arch=$arch" "region=$region" "ptype=$ptype" \
+-	"${ec2_curf}") && [ -n "$ami" ] || fail "failed to find ami"
++	"${ec2_curf}")
++
++if [ -z "$ami" ]; then
++	amifmt="%{ami}"
++	[ "$format" = "${format#*${amifmt}}" ] ||
++		fail "no matching ami id found, but '%{ami}' in output format"
++fi
+ 
+ case "$arch:$store:$ptype" in
+ 	*:hvm) itypes_all="${itypes_hvm}";;
+
+=== modified file 'bin/ubuntu-ec2-run'
+--- old/bin/ubuntu-ec2-run	2013-02-04 16:33:18 +0000
++++ new/bin/ubuntu-ec2-run	2015-03-11 18:12:55 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python3
+ #
+ #    ubuntu-ec2-run: ec2-run-instances that support human readable
+ #                    aliases for AMI's
+@@ -20,7 +20,7 @@
+ #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ 
+ KNOWN_RELEASES = ["lucid", "maverick", "natty", "oneiric", "precise",
+-                  "quantal", "raring"]
++                  "quantal", "raring", "trusty", "utopic", "vivid"]
+ 
+ USAGE = """
+ Usage: ubuntu-ec2-run [ options ] arguments
+@@ -65,7 +65,6 @@
+ import string
+ import subprocess
+ import sys
+-import urllib2
+ 
+ # This could/should use `distro-info --supported`
+ aliases = [
+@@ -76,6 +75,42 @@
+   "hvm", "paravirtual", "pv",
+ ]
+ 
++SSD = "ssd"
++SPIN = "spin"
++
++# cleaned from http://aws.amazon.com/ec2/instance-types/
++# (vcpu, compute-units, mem, disknum, disksize, diskback)
++SIZE_DATA = {
++    'm3.medium': (1,3,3.75,1,4,SSD),
++    'm3.large': (2,6.5,7.5,1,32,SSD),
++    'm3.xlarge': (4,13,15,2,40,SSD),
++    'm3.2xlarge': (8,26,30,2,80,SSD),
++    'm1.small': (1,1,1.7,1,160,SPIN),
++    'm1.medium': (1,2,3.75,1,410,SPIN),
++    'm1.large': (2,4,7.5,2,420,SPIN),
++    'm1.xlarge': (4,8,15,4,420,SPIN),
++    'c3.large': (2,7,3.75,2,16,SSD),
++    'c3.xlarge': (4,14,7.5,2,40,SSD),
++    'c3.2xlarge': (8,28,15,2,80,SSD),
++    'c3.4xlarge': (16,55,30,2,160,SSD),
++    'c3.8xlarge': (32,108,60,2,320,SSD),
++    'c1.medium': (2,5,1.7,1,350,SPIN),
++    'c1.xlarge': (8,20,7,4,420,SPIN),
++    'cc2.8xlarge': (32,88,60.5,4,840,SPIN),
++    'g2.2xlarge': (8,26,15,1,60,SSD),
++    'cg1.4xlarge': (16,33.5,22.5,2,840,SPIN),
++    'm2.xlarge': (2,6.5,17.1,1,420,SPIN),
++    'm2.2xlarge': (4,13,34.2,1,850,SPIN),
++    'm2.4xlarge': (8,26,68.4,2,840,SPIN),
++    'cr1.8xlarge': (32,88,244,2,120,SSD),
++    'i2.xlarge': (4,14,30.5,1,800,SSD),
++    'i2.2xlarge': (8,27,61,2,800,SSD),
++    'i2.4xlarge': (16,53,122,4,800,SSD),
++    'i2.8xlarge': (32,104,244,8,800,SSD),
++    'hs1.8xlarge': (16,35,117,2,2048,SPIN),
++    'hi1.4xlarge': (16,35,60.5,2,1024,SSD),
++    't1.micro': (1,.1,0.615,0,0,None),
++}
+ 
+ def get_argopt(args, optnames):
+     ret = None
+@@ -101,27 +136,13 @@
+ 
+ 
+ def get_block_device_mappings(itype):
+-    # cleaned from http://aws.amazon.com/ec2/instance-types/
+-    # t1.micro        0   # m1.large      850   # cg1.4xlarge  1690
+-    # m1.small      160   # m2.2xlarge    850   # m1.xlarge    1690
+-    # c1.medium     350   # c1.xlarge    1690   # m2.4xlarge   1690
+-    # m1.medium     410   # cc1.4xlarge  1690   # hi1.4xlarge  2048
+-    # m2.xlarge     420   # cc1.4xlarge  1690   # cc2.8xlarge  3370
+-    # m3.xlarge       0
+-    # m3.2xlarge      0
+     bdmaps = []
+-    if (itype in ("t1.micro", "m1.small", "c1.medium") or
+-        itype.startswith("m3.")):
+-        pass  # the first one is always attached. ephemeral0=sda2
+-    elif itype in ("m2.xlarge", "m1.medium"):
+-        bdmaps = ["/dev/sdb=ephemeral0"]
+-    elif (itype in ("m1.large", "m2.2xlarge", "hi1.4xlarge") or
+-          itype.startswith("cg1.") or itype.startswith("cc1.")):
+-        bdmaps = ["/dev/sdb=ephemeral0", "/dev/sdc=ephemeral1"]
+-    elif (itype in ("m1.xlarge", "m2.4xlarge", "c1.xlarge") or
+-          itype.startswith("cc2.8xlarge")):
+-        bdmaps = ["sdb=ephemeral0", "sdc=ephemeral1",
+-                  "sdd=ephemeral2", "sde=ephemeral3"]
++    allmaps = ["/dev/sdb=ephemeral0", "/dev/sdc=ephemeral1",
++               "/dev/sdd=ephemeral2", "/dev/sde=ephemeral3"]
++    if itype in SIZE_DATA:
++        (vcpu, ec2, mem, disknum, disksize, diskback) = SIZE_DATA[itype]
++        bdmaps = allmaps[0:disknum]
++
+     args = []
+     for m in bdmaps:
+         args.extend(("--block-device-mapping", m,))
+@@ -155,7 +176,7 @@
+ # otherwise, fall back to our builtin list of releases
+ try:
+     out = subprocess.check_output(["ubuntu-distro-info", "--all"])
+-    all_rels = out.strip().split("\n")
++    all_rels = out.decode().strip().split("\n")
+     releases = []
+     seen_lucid = False
+     for r in all_rels:
+@@ -199,7 +220,7 @@
+ 
+ try:
+     (ami, itype, summary, store, endl) = \
+-        subprocess.check_output(query_cmd).split("\n")
++        subprocess.check_output(query_cmd).decode().split("\n")
+     if endl.strip():
+         sys.stderr.write("Unexpected output of command:\n  %s" % cmd)
+ except subprocess.CalledProcessError as e:
+@@ -220,7 +241,7 @@
+ 
+ sys.stderr.write("# %s\n" % summary)
+ if dry_run:
+-    print ' '.join(ri_cmd)
++    print(' '.join(ri_cmd))
+ else:
+     os.execvp(ri_cmd[0], ri_cmd)
+ ###############################################################################
+
+=== added file 'bin/vcs-run'
+--- old/bin/vcs-run	1970-01-01 00:00:00 +0000
++++ new/bin/vcs-run	2015-07-15 15:16:39 +0000
+@@ -0,0 +1,282 @@
++#!/bin/bash
++set -f
++
++VERBOSITY=0
++SUPPORTED_VCS="bzr hg git url"
++RET_UNCLAIMED=3
++RET_SUCCESS=0
++RET_FAIL=1
++DEF_COMMAND="vcs_run"
++
++Usage() {
++	cat <<EOF
++Usage: ${0##*/} [ options ] repo-url [command [arguments]]
++
++   obtain repository from repo-url, and execute 'command' with 'arguments'
++
++   Command will default to '$DEF_COMMAND' in the top level of the repository.
++
++   options:
++      -t | --target  DIR   checkout branch to DIR [./(basename repo)]
++           --vcs-type  V   repo-url is of type 'V' [auto]
++                           supported: auto $SUPPORTED_VCS
++      -v | --verbose       increase verbosity
++      -D | --deps          attempt to install dependencies if necessary
++
++   Example:
++    * run 'stack.sh' in git://github.com/openstack-dev/devstack.git
++      vcs-run --deps git://github.com/openstack-dev/devstack.git stack.sh
++    * build cloud-utils
++      vcs-run --deps lp:cloud-utils -- ./tools/build-deb -us -uc
++
++EOF
++}
++
++bad_Usage() { Usage 1>&2; [ $# -eq 0 ] || error "$@"; return 1; }
++error() { echo "$@" 1>&2; }
++debug() {
++	local level=${1}; shift;
++	[ "${level}" -gt "${VERBOSITY}" ] && return
++	error "${@}"
++}
++
++has_cmd() {
++	command -v "$1" >/dev/null 2>&1
++}
++
++get_cmd() {
++	# get_cmd(cmd, get_deps, packages)
++	#   get command 'cmd' if necessary by installing 'packages'
++	#   if 'get_deps' is false, then return error.
++	local cmd="$1" deps="$2"
++	shift 2
++	has_cmd "$1" && return 0
++	$deps || { error "No cmd '$cmd', but nodeps specified"; return 1; }
++	apt_install "$@"
++}
++
++apt_install() {
++	local cmd=""
++	cmd=( env DEBIAN_FRONTEND=noninteractive apt-get --quiet 
++		  --assume-yes install "$@" )
++	[ "$(id -u)" = "0" ] ||
++		cmd=( sudo "${cmd[@]}" )
++	debug 1 "installing dependencies:" "${cmd[@]}"
++	"${cmd[@]}"
++}
++
++vcsget_bzr() {
++	# deps type src target cmd
++	local deps="$1" rtype="$2" src="$3" target="$4" tmp=""
++	if [ "$rtype" = "auto" ]; then
++		case "$src" in
++			*.bzr|bzr:*|lp:*) :;;
++			*)
++				if ! [ -d "$src" -a -d "$src/.bzr" ]; then
++					return $RET_UNCLAIMED
++				fi
++				src=$(cd "$src" && pwd) || return $RET_FAIL
++				;;
++		esac
++	fi
++	get_cmd bzr "$deps" bzr || return $RET_FAIL
++	if [ -z "$target" ]; then
++		case "$src" in
++			*/*) tmp="${src##*/}";;
++			*:*) tmp="${src#*:}";;
++			*)   tmp="$src"
++		esac
++		target="${tmp%.bzr}"
++	fi
++	local cmd="" q="--quiet"
++	[ $VERBOSITY -gt 1 ] && q=""
++
++	if [ -d "$target/.bzr" ]; then
++		debug 1 "updating $target: bzr pull ${q:+$q }$src"
++		( cd "$target" && bzr pull $q "$src" )
++	else
++		debug 1 "branching to $target: bzr branch ${q:+$q }$src"
++		bzr branch $q "$src" "$target"
++	fi
++	[ $? -eq 0 ] || return $RET_FAIL
++	_RET="$target"
++	return 0
++}
++
++vcsget_git() {
++	# deps type src target cmd
++	local deps="$1" rtype="$2" src="$3" target="$4" tmp=""
++	if [ "$rtype" = "auto" ]; then
++		case "$src" in
++			*.git|git:*) :;;
++			*)
++				if ! [ -d "$src" -a -d "$src/.git" ]; then
++					return $RET_UNCLAIMED
++				fi
++				src=$(cd "$src" && pwd) || return $RET_FAIL
++				;;
++		esac
++	fi
++	get_cmd git "$deps" git || return $RET_FAIL
++	if [ -z "$target" ]; then
++		tmp="${src##*/}"
++		target="${tmp%.git}"
++	fi
++	local q="--quiet"
++	[ $VERBOSITY -gt 1 ] && q=""
++	if [ -d "$target/.git" ]; then
++		debug 1 "updating $target: git pull ${q:+$q }${src}"
++		( cd "$target" && git pull $q "$src" )
++	else
++		debug 1 "cloning to $target: git clone ${q:+$q }$src $target"
++		git clone $q "$src" "$target" || return $RET_FAIL
++	fi
++	[ $? -eq 0 ] || return $RET_FAIL
++	_RET="$target"
++	return 0
++}
++
++vcsget_hg() {
++	# deps type src target cmd
++	local deps="$1" rtype="$2" src="$3" target="$4" tmp=""
++	if [ "$rtype" = "auto" ]; then
++		case "$src" in
++			*.hg|hg:*) :;;
++			*) return $RET_UNCLAIMED;;
++		esac
++	fi
++	get_cmd hg "$deps" mercurial || return $RET_FAIL
++	if [ -z "$target" ]; then
++		tmp="${src##*/}"
++		target="${tmp%.hg}"
++	fi
++	local quiet="--quiet"
++	[ $VERBOSITY -gt 1 ] && quiet=""
++	hg clone $quiet "$src" "$target" || return $RET_FAIL
++	_RET="$target"
++	return 0
++}
++
++vcsget_url() {
++	# deps type src target cmd
++	# if target is not specified, target directory is md5sum
++	# of the url.  If cmd does not start with a /, then use it
++	# as the output filename.  If it does start with a /, then
++	# store the url in DEF_COMMAND in this directory.
++	local deps="$1" rtype="$2" src="$3" target="$4" cmd="$5" tmp=""
++	if [ "$rtype" = "auto" ]; then
++		case "$src" in
++			http://*|https://*) :;;
++			*) return $RET_UNCLAIMED;;
++		esac
++	fi
++	get_cmd wget "$deps" wget || return $RET_FAIL
++	if [ -z "$target" ]; then
++		target=$(echo "$src" | md5sum)
++		target=${target%  -}
++	fi
++
++	local cmdname="$cmd"
++	if [ "${cmd#/}" != "$cmd" ]; then
++		cmdname="./$DEF_COMMAND"
++	fi
++
++	local quiet="--quiet"
++	[ $VERBOSITY -gt 1 ] && quiet=""
++
++	mkdir -p "$target" ||
++		{ error "failed mkdir -p '$target'"; return $RET_FAIL; }
++	debug 1 "wget -O '$target/$cmdname' '$src'"
++	wget $quiet -O "$target/$cmdname" "$src" || {
++		error "failed wget -O '$target/$cmdname' '$src'"
++		return $RET_FAIL
++	}
++	
++	_RET="$target"
++	return 0
++}
++
++main() {
++	local short_opts="hDt:v"
++	local long_opts="help,deps,target:,vcs-type:,verbose"
++	local getopt_out=$(getopt --name "${0##*/}" \
++		--options "${short_opts}" --long "${long_opts}" -- "$@") &&
++		eval set -- "${getopt_out}" ||
++		{ bad_Usage; return; }
++
++	local cur="" next="" target="" rtype="auto" tmp=""
++	local def_target="" deps="" getdeps=false arg0=""
++
++	while [ $# -ne 0 ]; do
++		cur="$1"; next="$2";
++		case "$cur" in
++			-h|--help) Usage ; exit 0;;
++			-D|--deps) getdeps=true;;
++			-t|--target) target=$next; shift;;
++			   --vcs-type) rtype=$next; shift;;
++			-v|--verbose) VERBOSITY=$((${VERBOSITY}+1));;
++			--) shift; break;;
++		esac
++		shift;
++	done
++
++	[ $# -gt 0 ] || { bad_Usage "must provide at least repo"; return; }
++
++	src_repo="$1"
++	shift
++	[ -n "$src_repo" ] || { error "empty source repo?"; return 1; }
++
++	if [ -n "$target" ]; then
++		tmp=$(dirname "${target}")
++		[ -d "$tmp" ] || mkdir -p "$tmp" ||
++			{ error "failed to create $tmp for '$target'"; return 1; }
++	fi
++
++	if [ $# -eq 0 ]; then
++		set -- "$DEF_COMMAND"
++	fi
++	arg0="$1"
++
++	local vcs vcslist="${SUPPORTED_VCS}"
++	[ "$rtype" = "auto" ] || vcslist="$rtype"
++
++	local workd=""
++	for vcs in $vcslist; do
++		has_cmd "vcsget_$vcs" ||
++			{ error "unknown vcs type '$vcs'"; return 1; }
++		"vcsget_$vcs" "$getdeps" "$rtype" "$src_repo" "$target" "$arg0"
++		ret=$?
++		case "$ret" in
++			$RET_UNCLAIMED) :;; # not claimed
++			$RET_SUCCESS) workd="$_RET"; break;;
++			*) error "failed to get '$src_repo' of type '$vcs'";
++				return $ret;;
++		esac
++	done
++
++	[ -d "$workd" ] ||
++		{ error "unknown source repo '$src_repo'"; return 1; }
++
++	cd "$workd" ||
++		{ error "failed to enter target dir '$workd'"; return 1; }
++
++	if [ -f "./$1" ]; then
++		if [ ! -x "./$1" ]; then
++			debug 1 "adding execute to ./$1"
++			chmod ugo+x "./$1" ||
++				{ error "failed add execute to ./$1"; return 1; }
++		fi
++		tmp="./$1"
++		shift
++		set -- "$tmp" "$@"
++	elif ! has_cmd "$1"; then
++		error "command '$1' not available anywhere"
++		return 1
++	fi
++
++	debug 1 "executing command in $PWD:" "$@"
++	exec "$@"
++}
++
++main "$@"
++# vi: ts=4 noexpandtab
+
+=== modified file 'bin/write-mime-multipart'
+--- old/bin/write-mime-multipart	2013-01-28 14:02:09 +0000
++++ new/bin/write-mime-multipart	2015-07-15 15:16:39 +0000
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/python3
+ # largely taken from python examples
+ # http://docs.python.org/library/email-examples.html
+ 
+@@ -25,19 +25,28 @@
+     '#cloud-boothook': 'text/cloud-boothook'
+ }
+ 
++def try_decode(data):
++    try:
++        return (True, data.decode())
++    except UnicodeDecodeError:
++        return (False, data)
+ 
+ def get_type(fname, deftype):
+-    f = file(fname, "rb")
+-    line = f.readline()
+-    f.close()
+     rtype = deftype
+ 
+-    # slist is sorted longest first
+-    slist = sorted(starts_with_mappings.keys(), key=lambda e: 0 - len(e))
+-    for sstr in slist:
+-        if line.startswith(sstr):
+-            rtype = starts_with_mappings[sstr]
+-            break
++    with open(fname, "rb") as f:
++        (can_be_decoded, line) = try_decode(f.readline())
++
++    if can_be_decoded:
++        # slist is sorted longest first
++        slist = sorted(list(starts_with_mappings.keys()), key=lambda e: 0 - len(e))
++        for sstr in slist:
++            if line.startswith(sstr):
++                rtype = starts_with_mappings[sstr]
++                break
++    else:
++        rtype = 'application/octet-stream'
++
+     return(rtype)
+ 
+ 
+@@ -94,16 +103,20 @@
+         outer.attach(msg)
+ 
+     if options.output is "-":
+-        ofile = sys.stdout
++        if hasattr(sys.stdout, "buffer"):
++            # We want to write bytes not strings
++            ofile = sys.stdout.buffer
++        else:
++            ofile = sys.stdout
+     else:
+-        ofile = file(options.output, "wb")
++        ofile = open(options.output, "wb")
+ 
+     if options.compress:
+         gfile = gzip.GzipFile(fileobj=ofile, filename=options.output)
+-        gfile.write(outer.as_string())
++        gfile.write(outer.as_string().encode())
+         gfile.close()
+     else:
+-        ofile.write(outer.as_string())
++        ofile.write(outer.as_string().encode())
+ 
+     ofile.close()
+ 
+
+=== added file 'debian/README.source'
+
+=== modified file 'debian/changelog'
+
+=== added file 'debian/cloud-guest-utils.install'
+
+=== added file 'debian/cloud-image-utils.install'
+
+=== added file 'debian/cloud-utils-euca.install'
+
+=== modified file 'debian/control'
+
+=== modified file 'debian/copyright'
+
+=== modified file 'debian/rules'
+
+=== added directory 'debian/source'
+=== added file 'debian/source/format'
+
+=== added file 'debian/update-sync-to-main'
+
+=== modified file 'debian/watch'
+
+=== added file 'man/cloud-localds.1'
+--- old/man/cloud-localds.1	1970-01-01 00:00:00 +0000
++++ new/man/cloud-localds.1	2013-07-29 08:21:17 +0000
+@@ -0,0 +1,95 @@
++.\" cloud-localds (1) manual page
++.\" Copyright (C) 2013 Thomas Bechtold <thomasbechtold@jpberlin.de>
++.\" License: GPL-3
++.\"
++
++.TH cloud-localds 1 "July 2013" cloud\-utils "cloud\-utils"
++.SH NAME
++cloud-localds \- create a disk for cloud-init to utilize nocloud
++.SH SYNOPSIS
++.B cloud-localds
++[options] output user-data [meta-data]
++
++.SH DESCRIPTION
++.B cloud-localds
++creates a disk-image with user-data and/or meta-data for
++.BR cloud-init (1).
++user-data can contain everything which is supported by
++.BR cloud-init (1)
++.
++.SH OPTIONS
++.TP
++.BR \-d ", " \-\-disk_format =\fIDISKFORMAT\fR
++Disk format to output. See
++.BR qemu-img (1)
++for allowed disk formats.
++Default is raw.
++
++.TP
++.BR \-f ", " \-\-filesystem =\fIFORMAT\fR
++Filesystem format. Allowed formats are vfat and iso.
++Default is iso9660.
++
++.TP
++.BR \-h ", " \-\-help
++Show usage.
++
++.TP
++.BR \-i ", " \-\-interfaces
++Write network interfaces file into metadata.
++
++.TP
++.BR \-m ", " \-\-dsmode =\fIMODE\fR
++Add dsmode to the metadata. Allowed are local or net.
++Default in
++.BR cloud-init (1)
++is net.
++
++.SH EXAMPLES
++This example creates a disk image with user-data which can be used to start a cloud image which supports
++.BR cloud-init (1).
++
++.IP "Create some user-data:"
++.IP
++.PP
++.nf
++.RS
++cat > my-user-data <<EOF
++password: passw0rd
++chpasswd: { expire: False }
++ssh_pwauth: True
++EOF
++.RE
++.fi
++.PP
++
++.IP "Create the disk image which contains the user-data:"
++.IP
++.PP
++.nf
++.RS
++cloud-localds my-seed.img my-user-data
++.RE
++.fi
++.PP
++
++.IP "Boot the cloud-image:"
++.IP
++.PP
++.nf
++.RS
++qemu -net nic -net user -hda cloud-image.img -hdb my-seed.img -m 512
++.RE
++.fi
++.PP
++cloud-image.img is a image which supports
++.BR cloud-init (1)
++during the boot process.
++
++.SH SEE ALSO
++.BR cloud-init (1),
++.BR qemu-img (1),
++.BR qemu (1)
++
++.SH AUTHOR
++This manpage was written by Thomas Bechtold <thomasbechtold@jpberlin.de> for Debian systems (but may be used by others). Permission is granted to copy, distribute and/or modify this document under the terms of the GNU General Public License, Version 3 published by the Free Software Foundation.
+
+=== modified file 'man/growpart.1'
+--- old/man/growpart.1	2013-01-09 15:27:04 +0000
++++ new/man/growpart.1	2015-10-09 19:28:42 +0000
+@@ -37,18 +37,18 @@
+ The number of the partition to resize (counting from 1)
+ 
+ .SH DESCRIPTION
+-Rewrite a the partition table in a disk or disk image so that the given partition takes up as much space as it can.  After running, the partition will end at the end of the disk, or at the beginning of the next partition.
++Rewrite a partition table in a disk or disk image so that the given partition takes up as much space as it can.  After running, the partition will end at the end of the disk, or at the beginning of the next partition.
+ 
+ .SH EXAMPLES
+ .TP
+-Extend partition 1 in /dev/sda to fill empty space until end of disk or next partitiong
++Extend partition 1 in /dev/sda to fill empty space until end of disk or next partition
+    growpart /dev/sda 1
+ .TP
+ Extend partition 2 in disk image my.image.
+    growpart my.image 2
+ 
+ .SH EXIT STATUS
+-The exit status is 0 if the partition was sucessfully grown or if --dry-run was specified and it could be grown. The exit status is 1 if the partition could not be grown due to lack of available space. The exit status is 2 if an error occured.
++The exit status is 0 if the partition was successfully grown or if --dry-run was specified and it could be grown. The exit status is 1 if the partition could not be grown due to lack of available space. The exit status is 2 if an error occurred.
+ 
+ 
+ .SH AUTHOR
+
+=== modified file 'test/test-growpart'
+--- old/test/test-growpart	2013-03-01 02:55:52 +0000
++++ new/test/test-growpart	2015-05-11 20:00:38 +0000
+@@ -2,7 +2,10 @@
+ 
+ set -e
+ 
+-PT_TYPE="${PT_TYPE:-dos}" # dos or gpt
++[ "$(id -u)" = "0" ] ||
++	{ echo "sorry, must be root"; exit 1; }
++
++PT_TYPE="${PT_TYPE:-dos}" # dos or gpt or sfdisk-gpt
+ MP=""
+ LODEV=""
+ TEMP_D=""
+@@ -30,8 +33,8 @@
+ 	[ ! -d "${TEMP_D}" ] || rm -Rf "${TEMP_D}"
+ }
+ rq() {
+-	"$@" > /tmp/out 2>&1 ||
+-		{ echo "FAILED:" "$@"; cat /tmp/out; return 1; }
++   local out="${TEMP_D}/out"
++	"$@" > "$out" 2>&1 || { echo "FAILED:" "$@"; cat "$out"; return 1; }
+ }
+ 
+ TEMP_D=$(mktemp -d ${TMPDIR:-/tmp}/${0##*/}.XXXXXX)
+@@ -51,7 +54,9 @@
+ if [ "${PT_TYPE}" = "gpt" ]; then
+ 	rq sgdisk --new 1:2048: "$img"
+ else
+-	echo "1," | rq sfdisk "$img"
++	label=""
++	[ "${PT_TYPE}" = "sfdisk-gpt" ] && label="--label=gpt"
++	echo "2048," | rq sfdisk $label --force --unit=S "$img"
+ fi
+ 
+ truncate --size "$size" "$img"
+@@ -73,8 +78,9 @@
+ 
+ echo "==== before ===="
+ grep "${lodev##*/}" /proc/partitions
++sfdisk --list --unit=S "$lodev"
+ 
+-growpart -v "$lodev" 1
++growpart -v -v "$lodev" 1
+ 
+ echo "==== after ===="
+ grep "${lodev##*/}" /proc/partitions
+@@ -83,3 +89,5 @@
+ 
+ echo == df ==
+ df -h "$mp"
++
++# vi: ts=4 noexpandtab
+
+=== added file 'test/test-growpart-fsimage'
+--- old/test/test-growpart-fsimage	1970-01-01 00:00:00 +0000
++++ new/test/test-growpart-fsimage	2015-05-11 19:32:58 +0000
+@@ -0,0 +1,61 @@
++#!/bin/bash
++#
++# Just create an image in the filesystem, then grow it.
++
++set -e
++
++TEMP_D=""
++
++rq() {
++   local out="${TEMP_D}/out"
++	"$@" > "$out" 2>&1 || { echo "FAILED:" "$@"; cat "$out"; return 1; }
++}
++
++cleanup() {
++	[ -z "$MP" ] || { echo "unmount $MP"; umount "$MP"; }
++	if [ -n "$LODEV" ]; then
++		clearparts "$LODEV"
++		echo "losetup --detach $LODEV";
++		losetup --detach "$LODEV";
++	fi
++	[ ! -d "${TEMP_D}" ] || rm -Rf "${TEMP_D}"
++}
++TEMP_D=$(mktemp -d ${TMPDIR:-/tmp}/${0##*/}.XXXXXX)
++trap cleanup EXIT
++
++img="${TEMP_D}/disk.img"
++mp="${TEMP_D}/mp"
++
++size=1000M
++osize=500M
++rm -f $img
++
++truncate --size $osize "$img"
++
++if [ "${PT_TYPE}" = "gpt" ]; then
++	rq sgdisk --new 1:2048: "$img"
++else
++	echo "2048," | rq sfdisk --force --unit=S "$img"
++fi
++
++truncate --size "$size" "$img"
++
++echo "==== before ===="
++sfdisk --list --unit=S "$img"
++
++err="${TEMP_D}/gp.err"
++out="${TEMP_D}/gp.out"
++if ! growpart -v -v "$img" 1 2>"$err" > "$out"; then
++    cat "$err" "$out"
++    echo "failed"
++    exit 1
++fi
++echo "==== growpart-stderr ==="
++cat "$err"
++echo "==== growpart-stdout ===="
++cat "$out"
++grep -q "^CHANGED:" "$out" ||
++   { echo "did not find 'CHANGED'"; exit 1; }
++
++echo "==== after ===="
++sfdisk --list --unit=S "$img"
+
+=== modified file 'tools/build-deb'
+--- old/tools/build-deb	2012-07-17 02:33:31 +0000
++++ new/tools/build-deb	2013-03-28 12:41:12 +0000
+@@ -1,6 +1,8 @@
+ #!/bin/sh
+ 
++sourcename="cloud-utils"
+ TEMP_D=""
++UNCOMMITTED=${UNCOMMITTED:-0}
+ 
+ fail() { echo "$@" 1>&2; exit 1; }
+ cleanup() {
+@@ -10,7 +12,7 @@
+ if [ "$1" = "-h" -o "$1" = "--help" ]; then
+    cat <<EOF
+ Usage: ${0##*/}
+-   build a deb of cloud-utils directory
++   build a deb of from trunk directory
+    any options are passed straight through to debuild
+ 
+    Example:
+@@ -28,44 +30,46 @@
+ start_d=$PWD
+ top_d=$(cd "$(dirname "${0}")"/.. && pwd)
+ 
++export_uncommitted=""
++echo $UNCOMMITTED
++if [ "${UNCOMMITTED:-0}" != "0" ]; then
++   export_uncommitted="--uncommitted"
++fi
++
+ # grab the first line in the changelog
+-line1=$(head -n 1 ${top_d}/debian/changelog)
+ # hopefully this pulls the version info there
+-# resulting in something like: 0.25~trunk~bzrREVNO-1
+-clogver_o=$(echo "$line1" | sed 's,.*(\([^)]*\)).*,\1,')
++# resulting in something like: 0.1.0~bzrREVNO-1~trunk1
++clogver_o=$(sed -n '1s,.*(\([^)]*\)).*,\1,p' debian/changelog)
+ 
+ revno=$(bzr revno) || fail "failed to get revno"
+-clogver=$(echo "$clogver_o" | sed "s,REVNO,$revno,")
++clogver_upstream=${clogver_o%%-*}
++clogver_debian=${clogver_o#*-}
+ 
+-# upstream ver takes off the '-1' which is debian ver
+-uver=${clogver%-[0-9]}
++uver=$(echo "${clogver_upstream}" | sed "s,REVNO,$revno,")
++clogver_new="${uver}-${clogver_debian}"
+ 
+ TEMP_D=$(mktemp -d "${TMPDIR:-/tmp}/${bname}.XXXXXX")
+ 
+ trap cleanup EXIT
+ 
+-echo "building upstream version $uver, debian ver=${clogver##*-}"
+-
+-dir="cloud-utils-$uver"
+-cp -a "${top_d}" "${TEMP_D}/$dir" ||
+-   fail "failed to copy ${top_d}"
+-
+-cd "$TEMP_D"
+-
+-sed -i "s,REVNO,$revno," "$dir/debian/changelog" ||
+-   fail "failed to replace REVNO in debian/changelog"
+-
+-( cd "${dir}/debian" &&
+-  rm -Rf *debhelper* *.substvars cloud-utils/ files stamp-* ) ||
+-   fail "failed to clean out debian dir"
+-
+-tarball="cloud-utils_$uver.orig.tar.gz"
+-tar -czf "$tarball" "$dir" ||
+-   fail "failed to create ${tarball} from $dir in tempdir"
+-
+-echo "created cloud-utils_$uver.orig.tar.gz"
+-
+-cd "$dir"
++echo "building upstream version $uver, debian ver=${clogver_debian}"
++
++dir="${sourcename}-$uver"
++tarball="${sourcename}_$uver.orig.tar.gz"
++
++echo bzr export --format=tgz --root="$dir" --revision="${revno}" \
++   ${export_uncommitted} "${TEMP_D}/$tarball"
++bzr export --format=tgz --root="$dir" --revision="${revno}" \
++   ${export_uncommitted} "${TEMP_D}/$tarball" ||
++   fail "failed to bzr export tarball $tarball"
++echo "created ${tarball}"
++
++cd ${TEMP_D}
++tar xzf "$tarball" || fail "failed extract tarball"
++cd "$dir" || fail "fialed cd $dir"
++
++sed -i "1s,${clogver_o},${clogver_new}," debian/changelog ||
++   fail "failed to change replace REVNO in debian/changelog"
+ debuild "$@" || fail "debuild failed"
+ 
+ cd "$TEMP_D"
+
+=== added file 'tools/make-short-partition'
+--- old/tools/make-short-partition	1970-01-01 00:00:00 +0000
++++ new/tools/make-short-partition	2015-05-11 20:05:00 +0000
+@@ -0,0 +1,42 @@
++#!/bin/sh
++#
++# just quickly format a disk with a partition table
++# in gpt or dos, and give the first partition ~ 1/2 the size
++
++fmt="$1"
++disk="$2"
++set -e
++
++fail() { echo "$@" 1>&2; exit 1; }
++
++if [ ! -e "$disk" ]; then
++	truncate --size 1G "$disk"
++fi
++
++if [ -b "$disk" ]; then
++	if [ "${_FORCE_PARTITION:-0}" != "0" ]; then
++		echo "must set _FORCE_PARTITION=1 to work with block device";
++		exit 1;
++	fi
++	blocks=$(awk '$4 == name { print $3 }' "name=${disk#/dev/}" /proc/partitions)
++	[ -n "$blocks" ] || fail "did not find $disk in /proc/partitions"
++	size=$(($blocks*1024))
++else
++	size=$(stat --printf="%s" "$disk")
++fi
++
++wipefs --force --all "$disk"
++
++pt1sectors="$(($size/1024))" # roughly half
++sfdisk_in="2048,$pt1sectors"
++if [ "$fmt" = "gpt" ]; then
++	if command -v sgdisk; then
++		sgdisk --new "1:2048:$pt1sectors" "$disk"
++	else
++		echo "$sfdisk_in" | sfdisk --force --unit=S --label=gpt "$disk"
++	fi
++else
++	echo "$sfdisk_in" | sfdisk --force --unit=S "$disk"
++fi
++
++# vi: ts=4 noexpandtab
+
+=== removed file 'ubuntu-cloudimg-keyring.gpg.b64'
+--- old/ubuntu-cloudimg-keyring.gpg.b64	2012-07-12 14:25:19 +0000
++++ new/ubuntu-cloudimg-keyring.gpg.b64	1970-01-01 00:00:00 +0000
+@@ -1,24 +0,0 @@
+-# This is a keyring containing the public key for the cloud images
+-# pub   4096R/7DB87C81 2009-09-15
+-# uid   UEC Image Automatic Signing Key <cdimage@ubuntu.com>
+-mQINBEqwKTUBEAC8V01JGfeYVVlwlcr0dmwF8n+We/lbxwArjR/gZlH7/MJEZnALQHUrDTpD3Skf
+-bsjQgeNt8eS3Jyzoc2r3t2nos4rXPH4kIzAvtqslz6Ns4ZYjoHVkVC2oV8vYbxER+3/lDjTWVII7
+-omtDVvqH33QlqYZ8+bQbs21lZb2ROJIQCiH0YzaqYR0I2SEykBL873V0ygdyW/mCMwniXTLUyGAU
+-V4/28NOzw/6LGvJElJe4UqwQxl/aXtPIJjPka8LA8+nDi5/u6WEgDWgBhLEHvQG1BNdttm3WCjbu
+-4zS3mNfNBidTamZfOaMJUZVYxhOB5kNQqyR4eYqFK/U+305eLrZ05ocadsmcQWkHQVbgt+g4yyFN
+-l56N5AirkFjVtfArkUJfINGgJ7gkSeyqTJK24f33vsIpPwRQ5eFn7H4PwGc0Piym73YLJnlR94LN
+-EG0ceOJ7u1r+WuaesIj+lKIZsG/rRLf7besaMCCtPcimVgEAmBoIdpTpdP3aa54w/dvfSwW47mGY
+-14G5PBk/0MDy2Y5HOeXat3RXpGZZFh7zbwSQ93RhYH3bNPNd5lMu3ZRkYX19FWxoLCi5lx4K3flY
+-hiolZ5i4KxJCoGRobsKjm74Xv2QlvCXYyAk5BnAQCsu5hKZ1sOhQADCcKz1Zbg8JRc3vmelaJ/VF
+-vHTzs4hJTUvOowARAQABtDRVRUMgSW1hZ2UgQXV0b21hdGljIFNpZ25pbmcgS2V5IDxjZGltYWdl
+-QHVidW50dS5jb20+iQI3BBMBAgAhAhsDAh4BAheABQJKsColBQsJCAcDBRUKCQgLBRYCAwEAAAoJ
+-EBpdbEx9uHyBLicP/jXjfLhs255oT8gmvBXS9WDGSdpPiaMxd0CHEyHuT/XdWsoUUYXAPAti8Fyk
+-2K99mze+n4SLCRRJhxqYlcpVy2icc41/VkKI9d/pF4t54RM5TledYpKVV7xTgoUHZpuL2mWzaT61
+-MzRAxUqqaU42/xSLxLt/noryPHo57IghJXbAcmgLhFT0fZmtDy9cD4IBvurZF6cRuMJXjxZmssnt
+-MHsFZl4PEC3oR/WgJA37OrjMVej9r+JA909vr5K/UO+P2gWYOH/2CnGDlaTu72wUrLf6QV5jMyKc
+-6+G7fw5bTJd9lE8Km2H+4z9e+t7IOv9oxojvESu27exD4LU7SjzZloYnmlTCsdHwgSJVnf+lqXoZ
+-eUNT9Tmku8VzwCoExTwo9exaJUHeO8ABkfsJVmry40ovzQAHh427+6NpxgkWErVocnm54LPIQucZ
+-YJrg08s/azRzCjlsYChsaWMvGlMZQo52MuLvETHVPtSggP7sLeIOlS+8tO1ykSJY65j8AHYBV6hb
+-9EOjWmqpx33GXn8AyCPiMs9/pmeOI0V6YMm6HCLAwZb+rRS6gcyt9dlWyLU0QLlpmwHSOVJMv2rn
+-NCUtz6pb8y/o9AN2Z48RpH9C9cfv4dAfbtYn7uTd+M3gk4xyURREg2xuDnraYFs6cZ60/bSy63Gx
+-Tyi/cCc0S57GgtOKsAIAAw==
+
