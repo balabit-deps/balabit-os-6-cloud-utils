@@ -1,3 +1,10 @@
+cloud-utils (0.27-0ubuntu25) xenial; urgency=medium
+
+  * mount-image-callback: update partitions and settle on nbd mounts.
+    (LP: #1741300)
+
+ -- Scott Moser <smoser@ubuntu.com>  Fri, 26 Jan 2018 13:27:32 -0500
+
 cloud-utils (0.27-0ubuntu24) xenial; urgency=medium
 
   * cloud-localds: support --vendor-data, network-config and 'tar'
