@@ -1,3 +1,11 @@
+cloud-utils (0.27-0ubuntu25.1) xenial; urgency=medium
+
+  * debian/patches/lp-1762748-growpart-grow-past-2TB-disks.patch:
+    growpart: fix bug that stopped GPT disks from being grown past 2TB.
+    (LP: #1762748)
+
+ -- Scott Moser <smoser@ubuntu.com>  Thu, 19 Apr 2018 10:56:47 -0400
+
 cloud-utils (0.27-0ubuntu25) xenial; urgency=medium
 
   * mount-image-callback: update partitions and settle on nbd mounts.
