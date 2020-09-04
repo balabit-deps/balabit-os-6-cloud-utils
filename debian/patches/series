@@ -1,3 +1,5 @@
 sync-to-trunk.patch
 lp-1741300-fix-qcow-nbd.patch
 lp-1762748-growpart-grow-past-2TB-disks.patch
+lp-1493188-support-overlay-filesystem
+lp-1630274-mount-overlay-first

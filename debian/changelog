@@ -1,3 +1,14 @@
+cloud-utils (0.27-0ubuntu25.2) xenial; urgency=medium
+
+  * debian/patches/lp-1493188-support-overlay-filesystem:
+    mount-image-callback: support 'overlay' filesystem type rather
+    than ubuntu specific 'overlayfs' (LP: #1493188)
+  * debian/patches/lp-1630274-mount-overlay-first:
+    mount-image-callback: try mounting overlay rather than checking first
+    (LP: #1630274)
+
+ -- Chad Smith <chad.smith@canonical.com>  Fri, 04 Sep 2020 08:47:08 -0600
+
 cloud-utils (0.27-0ubuntu25.1) xenial; urgency=medium
 
   * debian/patches/lp-1762748-growpart-grow-past-2TB-disks.patch:
